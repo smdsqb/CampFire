@@ -20,7 +20,7 @@ export default function PostCard({ post }: Props) {
     const next: 1 | -1 | 0 = prev === val ? 0 : val
     setVoteState(next)
     setVotes(v => v + (next === 0 ? -val : val - prev))
-    await castVote(post.id, user.id, val)
+    await castVote(post.id, user.uid, val)
   }
 
   const ts = (post.createdAt as any)?.seconds
