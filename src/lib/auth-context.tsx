@@ -31,7 +31,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     })
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      console.log('Auth event:', event, session)
       setSession(session)
       setUser(session?.user ?? null)
       setLoading(false)
@@ -41,13 +40,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [])
 
   async function signInWithGoogle() {
-    const { data, error } = await supabase.auth.signInWithOAuth({
+    await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: 'https://campfires.vercel.app/auth/callback',
+        redirectTo: 'https://campfires.vercel.app',
+        skipBrowserRedirect: false,
       },
     })
-    console.log('OAuth result:', data, error)
   }
 
   async function signOut() {
