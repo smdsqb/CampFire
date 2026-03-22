@@ -5,7 +5,8 @@ import {
   onAuthStateChanged, signInWithPopup, signOut as firebaseSignOut,
   type User
 } from 'firebase/auth'
-import { auth, googleProvider } from './firebase'
+import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore'
+import { auth, googleProvider, db } from './firebase'
 
 interface AuthCtx {
   user:             User | null
@@ -25,8 +26,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    const unsub = onAuthStateChanged(auth, (u) => {
-      setUser(u)
+    const unsub = onAuthStateChanged(auth, async (u) => {
+      if (u) {
+        const userRef = doc(db, 'users', u.uid)
+        const userSnap = await getDoc(userRef)
+        if (!userSnap.exists()) {
+          await setDoc(userRef, {
+            uid:         u.uid,
+            displayName: u.displayName,
+            photoURL:    u.photoURL,
+            email:       u.email,
+            createdAt:   serverTimestamp(),
+          })
+        }
+        setUser(u)
+      } else {
+        setUser(null)
+      }
       setLoading(false)
     })
     return () => unsub()
@@ -53,4 +69,3 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 }
 
 export const useAuth = () => useContext(AuthContext)
-
