@@ -6,10 +6,10 @@ import { useAuth } from '@/lib/auth-context'
 import { getInitials } from '@/lib/utils'
 
 const NAV = [
-  { icon: Home,          label: 'Home'     },
-  { icon: Compass,       label: 'Discover' },
-  { icon: MessageCircle, label: 'Messages' },
-  { icon: Bell,          label: 'Alerts'   },
+  { icon: Home,          label: 'Home',      path: '/'              },
+  { icon: Compass,       label: 'Discover',  path: '/discover'      },
+  { icon: MessageCircle, label: 'Messages',  path: '/messages'      },
+  { icon: Bell,          label: 'Alerts',    path: '/notifications' },
 ]
 
 interface Props { active: string; onNav: (label: string) => void }
@@ -22,15 +22,17 @@ export default function Sidebar({ active, onNav }: Props) {
     <div className="flex flex-col items-center w-[62px] py-3 gap-2 border-r border-[#2E2820] flex-shrink-0"
       style={{ background: 'rgba(10,8,5,.88)', backdropFilter: 'blur(16px)' }}>
 
-      <div className="w-[42px] h-[42px] rounded-[13px] flex items-center justify-center text-[22px] mb-2 flex-shrink-0"
+      <div
+        onClick={() => router.push('/')}
+        className="w-[42px] h-[42px] rounded-[13px] flex items-center justify-center text-[22px] mb-2 flex-shrink-0 cursor-pointer"
         style={{ background: 'linear-gradient(135deg,#EA580C,#F97316,#FBBF24)', boxShadow: '0 0 20px rgba(249,115,22,.4)' }}>
         🔥
       </div>
 
-      {NAV.map(({ icon: Icon, label }) => (
+      {NAV.map(({ icon: Icon, label, path }) => (
         <button
           key={label}
-          onClick={() => onNav(label)}
+          onClick={() => { onNav(label); router.push(path) }}
           title={label}
           className="w-[42px] h-[42px] rounded-xl flex items-center justify-center transition-all"
           style={{
