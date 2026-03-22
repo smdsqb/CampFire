@@ -1,0 +1,59 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return request.auth.uid == userId;
+    }
+
+    // Users — anyone can read, only owner can write
+    match /users/{userId} {
+      allow read:  if true;
+      allow write: if isOwner(userId);
+    }
+
+    // Camps — anyone can read, signed-in users can create
+    match /camps/{campId} {
+      allow read:   if true;
+      allow create: if isSignedIn();
+      allow update: if isSignedIn();
+      allow delete: if false;
+    }
+
+    // Memberships
+    match /memberships/{docId} {
+      allow read:   if true;
+      allow create: if isSignedIn();
+      allow delete: if isSignedIn();
+    }
+
+    // Posts — anyone can read, signed-in users can create/delete own
+    match /posts/{postId} {
+      allow read:   if true;
+      allow create: if isSignedIn();
+      allow update: if isSignedIn();
+      allow delete: if isSignedIn() && isOwner(resource.data.authorId);
+    }
+
+    // Votes — signed-in users only
+    match /votes/{voteId} {
+      allow read:   if isSignedIn();
+      allow create: if isSignedIn();
+      allow update: if isSignedIn() && isOwner(resource.data.userId);
+      allow delete: if isSignedIn() && isOwner(resource.data.userId);
+    }
+
+    // Comments — anyone can read, signed-in users can create/delete own
+    match /comments/{commentId} {
+      allow read:   if true;
+      allow create: if isSignedIn();
+      allow update: if isSignedIn();
+      allow delete: if isSignedIn() && isOwner(resource.data.authorId);
+    }
+  }
+}
