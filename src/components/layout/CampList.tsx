@@ -13,8 +13,6 @@ interface Props {
 }
 
 export default function CampList({ camps, activeCamp, onSelect, onlineCount }: Props) {
-
-export default function CampList({ camps, activeCamp, onSelect }: Props) {
   const list = camps.length > 0
     ? camps
     : SEED_CAMPS.map((c, i) => ({ ...c, id: String(i), createdAt: new Date(), createdBy: '' }))
