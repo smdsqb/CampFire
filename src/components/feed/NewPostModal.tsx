@@ -29,9 +29,9 @@ export default function NewPostModal({ campId, campName, onClose }: Props) {
         campId:       campId ?? selCamp,
         campName:     selCamp,
         campIcon:     camp.icon,
-        authorId:     user.id,
-        authorName:   user.user_metadata?.full_name ?? 'Anonymous',
-        authorAvatar: user.user_metadata?.avatar_url ?? undefined,
+        authorId:     user.uid,
+        authorName:   user.displayName ?? 'Anonymous',
+        authorAvatar: user.photoURL ?? undefined,
         tags:         tags.split(',').map(t => t.trim()).filter(Boolean),
       })
       onClose()
