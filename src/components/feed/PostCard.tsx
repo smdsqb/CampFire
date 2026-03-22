@@ -11,7 +11,7 @@ interface Props { post: Post }
 
 export default function PostCard({ post }: Props) {
   const { user } = useAuth()
-  const [votes,     setVotes]     = useState(post.upvotes - post.downvotes)
+  const [votes, setVotes] = useState(post.upvotes - post.downvotes)
   const [voteState, setVoteState] = useState<1 | -1 | 0>(0)
 
   async function handleVote(val: 1 | -1) {
@@ -23,9 +23,8 @@ export default function PostCard({ post }: Props) {
     await castVote(post.id, user.id, val)
   }
 
-  const createdAt = post.createdAt instanceof Date
-    ? post.createdAt
-    : new Date(((post.createdAt as any)?.seconds ?? 0) * 1000)
+  const ts = (post.createdAt as any)?.seconds
+  const createdAt = post.createdAt instanceof Date ? post.createdAt : new Date((ts ?? 0) * 1000)
 
   return (
     <div className="rounded-xl overflow-hidden border border-[#2E2820] transition-colors hover:border-[#3D3228]"
@@ -94,4 +93,23 @@ export default function PostCard({ post }: Props) {
           <div className="w-px h-5 bg-[#3D3228]" />
           <button onClick={() => handleVote(-1)}
             className="flex items-center px-3 py-1.5 transition-all hover:bg-[rgba(239,68,68,.12)]">
-            <span className="text-sm le
+            <span className="text-sm leading-none" style={{ color: voteState === -1 ? '#EF4444' : '#6B5A4A' }}>▼</span>
+          </button>
+        </div>
+        <ActionBtn icon={<MessageCircle size={13} />} label={formatCount(post.commentCount)} />
+        <ActionBtn icon={<Share2 size={13} />} label="Share" />
+        <ActionBtn icon={<Bookmark size={13} />} label="Save" />
+        <ActionBtn icon={<Star size={13} />} label="Award" />
+      </div>
+    </div>
+  )
+}
+
+function ActionBtn({ icon, label }: { icon: React.ReactNode; label: string }) {
+  return (
+    <button className="flex items-center gap-1 px-2.5 py-1.5 rounded-full text-xs font-medium text-[#A89880] hover:text-[#F5EFE8] transition-all border border-[#3D3228]"
+      style={{ background: 'rgba(255,255,255,.05)' }}>
+      {icon}{label}
+    </button>
+  )
+}
