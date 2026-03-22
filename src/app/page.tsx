@@ -10,10 +10,10 @@ import { getCamps, subscribeToPosts } from '@/lib/db'
 import type { Camp, Post } from '@/types'
 
 export default function HomePage() {
-  const [camps, setCamps] = useState<Camp[]>([])
-  const [activeCamp, setActiveCamp] = useState<string | null>(null)
-  const [trending, setTrending] = useState<Post[]>([])
-  const [navActive, setNavActive] = useState('Home')
+  const [camps,       setCamps]       = useState<Camp[]>([])
+  const [activeCamp,  setActiveCamp]  = useState<string | null>(null)
+  const [trending,    setTrending]    = useState<Post[]>([])
+  const [navActive,   setNavActive]   = useState('Home')
   const [onlineCount, setOnlineCount] = useState(1)
 
   useEffect(() => {
@@ -32,12 +32,17 @@ export default function HomePage() {
       <CampfireScene />
       <div className="relative z-10 flex h-full">
         <Sidebar active={navActive} onNav={setNavActive} />
-        <CampList camps={camps} activeCamp={activeCamp} onSelect={setActiveCamp} onlineCount={onlineCount} />
+        <CampList
+          camps={camps}
+          activeCamp={activeCamp}
+          onSelect={setActiveCamp}
+          onlineCount={onlineCount}
+        />
         <Feed campId={activeCampObj?.id ?? null} campName={activeCamp} />
         <RightPanel trending={trending} onOnlineCount={setOnlineCount} />
       </div>
       
-        <a href="/privacy"
+        href="/privacy"
         className="fixed bottom-3 right-3 text-[10px] text-[#6B5A4A] hover:text-[#F97316] z-50"
       >
         Privacy Policy
