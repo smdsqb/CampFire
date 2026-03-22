@@ -101,7 +101,7 @@ export async function castVote(postId: string, userId: string, value: 1 | -1) {
       })
     }
   } else {
-    await addDoc(collection(db, 'votes'), { postId, userId, value })
+    await updateDoc(voteRef, { postId, userId, value })
     await updateDoc(postRef, {
       [value === 1 ? 'upvotes' : 'downvotes']: increment(1),
     })
