@@ -3,7 +3,8 @@
 import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { ArrowLeft } from 'lucide-react'
-import { supabase } from '@/lib/supabase'
+import { db } from '@/lib/firebase'
+import { collection, query, where, orderBy, limit, getDocs, doc, getDoc } from 'firebase/firestore'
 import { useAuth } from '@/lib/auth-context'
 import { formatCount, timeAgo } from '@/lib/utils'
 import CampfireScene from '@/components/layout/CampfireScene'
@@ -18,30 +19,40 @@ export default function ProfilePage() {
   const [tab,       setTab]       = useState<'posts' | 'comments'>('posts')
   const [loading,   setLoading]   = useState(true)
 
-  const isOwnProfile = user?.id === id
+  const isOwnProfile = user?.uid === id
 
   useEffect(() => {
     async function load() {
-      const { data: profileData } = await supabase
-        .from('users')
-        .select('*')
-        .eq('id', id)
-        .single()
-      setProfile(profileData)
+      const userSnap = await getDoc(doc(db, 'users', id))
+      setProfile(userSnap.data())
 
-      const { data: postsData } = await supabase
-        .from('posts')
-        .select('*')
-        .eq('author_id', id)
-        .order('created_at', { ascending: false })
-        .limit(20)
-      setPosts((postsData ?? []).map((p: any) => ({
-        id: p.id, title: p.title, body: p.body,
-        campId: p.camp_id, campName: p.camp_name, campIcon: p.camp_icon,
-        authorId: p.author_id, authorName: p.author_name, authorAvatar: p.author_avatar,
-        upvotes: p.upvotes, downvotes: p.downvotes, commentCount: p.comment_count,
-        createdAt: new Date(p.created_at), tags: p.tags ?? [], awards: p.awards ?? [],
-      })))
+      const q = query(
+        collection(db, 'posts'),
+        where('authorId', '==', id),
+        orderBy('createdAt', 'desc'),
+        limit(20)
+      )
+      const postsSnap = await getDocs(q)
+      setPosts(postsSnap.docs.map(d => {
+        const data = d.data()
+        return {
+          id:           d.id,
+          title:        data.title,
+          body:         data.body,
+          campId:       data.campId,
+          campName:     data.campName,
+          campIcon:     data.campIcon,
+          authorId:     data.authorId,
+          authorName:   data.authorName,
+          authorAvatar: data.authorAvatar,
+          upvotes:      data.upvotes,
+          downvotes:    data.downvotes,
+          commentCount: data.commentCount,
+          createdAt:    data.createdAt?.toDate() ?? new Date(),
+          tags:         data.tags ?? [],
+          awards:       data.awards ?? [],
+        } as Post
+      }))
       setLoading(false)
     }
     load()
@@ -62,33 +73,31 @@ export default function ProfilePage() {
       <div className="relative z-10 h-full overflow-y-auto">
         <div className="max-w-2xl mx-auto px-4 py-6">
 
-          {/* Back button */}
           <button onClick={() => router.back()}
             className="flex items-center gap-2 text-[#A89880] hover:text-[#F97316] mb-6 transition-colors">
             <ArrowLeft size={16} /> Back
           </button>
 
-          {/* Profile card */}
           <div className="rounded-2xl border border-[#2E2820] p-6 mb-4"
             style={{ background: 'rgba(18,14,10,.92)', backdropFilter: 'blur(16px)' }}>
             <div className="flex items-center gap-4">
-              {profile?.avatar_url ? (
-                <img src={profile.avatar_url} alt="" className="w-16 h-16 rounded-full object-cover border-2 border-[#F97316]" />
+              {profile?.photoURL ? (
+                <img src={profile.photoURL} alt="" className="w-16 h-16 rounded-full object-cover border-2 border-[#F97316]" />
               ) : (
                 <div className="w-16 h-16 rounded-full flex items-center justify-center text-2xl font-bold text-white"
                   style={{ background: 'linear-gradient(135deg,#EA580C,#FBBF24)' }}>
-                  {profile?.full_name?.[0] ?? '?'}
+                  {profile?.displayName?.[0] ?? '?'}
                 </div>
               )}
               <div>
                 <div className="font-serif text-xl font-semibold text-[#F5EFE8]">
-                  {profile?.full_name ?? 'Anonymous'}
+                  {profile?.displayName ?? 'Anonymous'}
                 </div>
                 <div className="text-sm text-[#6B5A4A] mt-0.5">{posts.length} posts</div>
                 {isOwnProfile && (
                   <button
                     onClick={() => router.push('/settings')}
-                    className="mt-2 text-xs px-3 py-1 rounded-full border border-[#3D3228] text-[#A89880] hover:text-[#F97316] hover:border-[#F97316] transition-all"
+                    className="mt-2 text-xs px-3 py-1 rounded-full border border-[#3D3228] text-[#A89880] hover:text-[#F97316] transition-all"
                     style={{ background: 'rgba(255,255,255,.05)' }}>
                     Edit Profile
                   </button>
@@ -97,7 +106,6 @@ export default function ProfilePage() {
             </div>
           </div>
 
-          {/* Tabs */}
           <div className="flex gap-0 border-b border-[#2E2820] mb-4">
             {(['posts', 'comments'] as const).map(t => (
               <button key={t} onClick={() => setTab(t)}
@@ -108,7 +116,6 @@ export default function ProfilePage() {
             ))}
           </div>
 
-          {/* Posts */}
           {tab === 'posts' && (
             <div className="flex flex-col gap-3">
               {posts.length === 0 ? (
