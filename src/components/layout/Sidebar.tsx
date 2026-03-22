@@ -58,9 +58,9 @@ export default function Sidebar({ active, onNav }: Props) {
             className="w-[36px] h-[36px] rounded-full flex items-center justify-center text-xs font-semibold text-white overflow-hidden"
             style={{ background: 'linear-gradient(135deg,#EA580C,#FBBF24)' }}
           >
-            {user.user_metadata?.avatar_url
-              ? <img src={user.user_metadata.avatar_url} alt="" className="w-full h-full object-cover" />
-              : getInitials(user.user_metadata?.full_name ?? null)
+            {user.photoURL
+              ? <img src={user.photoURL} alt="" className="w-full h-full object-cover" />
+              : getInitials(user.displayName ?? null)
             }
           </button>
         ) : (
