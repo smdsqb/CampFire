@@ -3,7 +3,9 @@
 import { useEffect, useState } from 'react'
 import { useAuth } from '@/lib/auth-context'
 import { formatCount } from '@/lib/utils'
-import { supabase } from '@/lib/supabase'
+import { getStats } from '@/lib/db'
+import { realtimeDb } from '@/lib/firebase'
+import { ref, onValue, set, onDisconnect, serverTimestamp as rtServerTimestamp } from 'firebase/database'
 import type { Post } from '@/types'
 
 interface Props { trending: Post[]; onOnlineCount: (n: number) => void }
@@ -13,49 +15,40 @@ export default function RightPanel({ trending, onOnlineCount }: Props) {
   const [memberCount, setMemberCount] = useState(0)
   const [campCount,   setCampCount]   = useState(0)
   const [postCount,   setPostCount]   = useState(0)
-  const [onlineCount, setOnlineCount] = useState(1)
+  const [onlineCount, setOnlineCount] = useState(0)
 
   useEffect(() => {
-    async function fetchStats() {
-      const [members, camps, posts] = await Promise.all([
-        supabase.from('memberships').select('*', { count: 'exact', head: true }),
-        supabase.from('camps').select('*', { count: 'exact', head: true }),
-        supabase.from('posts').select('*', { count: 'exact', head: true }),
-      ])
-      setMemberCount(members.count ?? 0)
-      setCampCount(camps.count ?? 0)
-      setPostCount(posts.count ?? 0)
-    }
-    fetchStats()
+    getStats().then(({ postCount, campCount, memberCount }) => {
+      setPostCount(postCount)
+      setCampCount(campCount)
+      setMemberCount(memberCount)
+    })
+  }, [])
 
-    const roomChannel = supabase.channel('online-users', {
-      config: { presence: { key: Math.random().toString(36).slice(2) } }
+  useEffect(() => {
+    // Track online users with Firebase Realtime Database presence
+    const connectedRef = ref(realtimeDb, '.info/connected')
+    const onlineRef = ref(realtimeDb, 'online')
+
+    const unsub = onValue(connectedRef, (snap) => {
+      if (snap.val() === true && user) {
+        const userRef = ref(realtimeDb, `online/${user.uid}`)
+        set(userRef, { online_at: Date.now() })
+        onDisconnect(userRef).remove()
+      }
     })
 
-    roomChannel
-      .on('presence', { event: 'sync' }, () => {
-        const state = roomChannel.presenceState()
-        const count = Object.keys(state).length
-        setOnlineCount(count)
-        onOnlineCount(count)
-      })
-      .subscribe(async (status) => {
-        if (status === 'SUBSCRIBED') {
-          await roomChannel.track({ online_at: new Date().toISOString() })
-        }
-      })
-
-    const statsChannel = supabase
-      .channel('stats')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'memberships' }, fetchStats)
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'posts' }, fetchStats)
-      .subscribe()
+    const onlineUnsub = onValue(onlineRef, (snap) => {
+      const count = snap.val() ? Object.keys(snap.val()).length : 0
+      setOnlineCount(count)
+      onOnlineCount(count)
+    })
 
     return () => {
-      supabase.removeChannel(roomChannel)
-      supabase.removeChannel(statsChannel)
+      unsub()
+      onlineUnsub()
     }
-  }, [])
+  }, [user])
 
   return (
     <div className="w-[210px] flex-shrink-0 border-l border-[#2E2820] overflow-y-auto px-3 py-3 flex flex-col gap-3 glass">
@@ -68,7 +61,7 @@ export default function RightPanel({ trending, onOnlineCount }: Props) {
           Gather around. Every great conversation starts with a spark.
         </p>
         {user ? (
-          <div className="text-xs text-[#A89880]">Signed in as {user.user_metadata?.full_name}</div>
+          <div className="text-xs text-[#A89880]">Signed in as {user.displayName}</div>
         ) : (
           <button
             onClick={signInWithGoogle}
@@ -108,9 +101,7 @@ export default function RightPanel({ trending, onOnlineCount }: Props) {
             </div>
           </div>
         ))}
-        {trending.length === 0 && (
-          <p className="text-xs text-[#6B5A4A] py-2">No trending posts yet.</p>
-        )}
+        {trending.length === 0 && <p className="text-xs text-[#6B5A4A] py-2">No trending posts yet.</p>}
       </Widget>
 
       <Widget title="⚡ Live Stats">
@@ -126,18 +117,14 @@ export default function RightPanel({ trending, onOnlineCount }: Props) {
           </div>
         ))}
       </Widget>
-
     </div>
   )
 }
 
 function Widget({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <div className="rounded-xl overflow-hidden border border-[#2E2820]"
-      style={{ background: 'rgba(20,16,12,.9)' }}>
-      <div className="px-3 py-2.5 text-[10px] font-semibold tracking-widest uppercase text-[#6B5A4A] border-b border-[#2E2820]">
-        {title}
-      </div>
+    <div className="rounded-xl overflow-hidden border border-[#2E2820]" style={{ background: 'rgba(20,16,12,.9)' }}>
+      <div className="px-3 py-2.5 text-[10px] font-semibold tracking-widest uppercase text-[#6B5A4A] border-b border-[#2E2820]">{title}</div>
       <div className="px-3 py-1">{children}</div>
     </div>
   )
