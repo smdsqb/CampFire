@@ -15,6 +15,7 @@ export default function HomePage() {
   const [activeCamp, setActiveCamp] = useState<string | null>(null)
   const [trending, setTrending] = useState<Post[]>([])
   const [navActive, setNavActive] = useState('Home')
+  const [onlineCount, setOnlineCount] = useState(1)
 
   useEffect(() => {
     if (typeof window !== 'undefined' && window.location.hash.includes('access_token')) {
@@ -40,9 +41,9 @@ export default function HomePage() {
       <CampfireScene />
       <div className="relative z-10 flex h-full">
         <Sidebar active={navActive} onNav={setNavActive} />
-        <CampList camps={camps} activeCamp={activeCamp} onSelect={setActiveCamp} />
+        <CampList camps={camps} activeCamp={activeCamp} onSelect={setActiveCamp} onlineCount={onlineCount} />
         <Feed campId={activeCampObj?.id ?? null} campName={activeCamp} />
-        <RightPanel trending={trending} />
+        <RightPanel trending={trending} onOnlineCount={setOnlineCount} />
       </div>
       
         <a href="/privacy"
