@@ -1,5 +1,6 @@
 'use client'
 
+import { useRouter } from 'next/navigation'
 import { Home, Compass, MessageCircle, Bell, Settings } from 'lucide-react'
 import { useAuth } from '@/lib/auth-context'
 import { getInitials } from '@/lib/utils'
@@ -15,6 +16,7 @@ interface Props { active: string; onNav: (label: string) => void }
 
 export default function Sidebar({ active, onNav }: Props) {
   const { user, signInWithGoogle, signOut } = useAuth()
+  const router = useRouter()
 
   return (
     <div className="flex flex-col items-center w-[62px] py-3 gap-2 border-r border-[#2E2820] flex-shrink-0"
@@ -44,6 +46,7 @@ export default function Sidebar({ active, onNav }: Props) {
 
       <button
         title="Settings"
+        onClick={() => router.push('/settings')}
         className="w-[42px] h-[42px] rounded-xl flex items-center justify-center transition-all"
         style={{ color: '#6B5A4A' }}
       >
@@ -53,8 +56,8 @@ export default function Sidebar({ active, onNav }: Props) {
       <div className="mt-auto mb-2">
         {user ? (
           <button
-            onClick={signOut}
-            title="Sign out"
+            onClick={() => router.push(`/profile/${user.uid}`)}
+            title="View profile"
             className="w-[36px] h-[36px] rounded-full flex items-center justify-center text-xs font-semibold text-white overflow-hidden"
             style={{ background: 'linear-gradient(135deg,#EA580C,#FBBF24)' }}
           >
