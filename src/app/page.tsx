@@ -1,7 +1,6 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { useRouter } from 'next/navigation'
 import CampfireScene from '@/components/layout/CampfireScene'
 import Sidebar       from '@/components/layout/Sidebar'
 import CampList      from '@/components/layout/CampList'
@@ -19,7 +18,6 @@ export default function HomePage() {
   const [navActive,  setNavActive]  = useState('Home')
 
   useEffect(() => {
-    // Handle hash-based auth redirect from Google OAuth
     if (window.location.hash && window.location.hash.includes('access_token')) {
       supabase.auth.getSession().then(() => {
         window.history.replaceState(null, '', window.location.pathname)
@@ -47,6 +45,12 @@ export default function HomePage() {
         <Feed campId={activeCampObj?.id ?? null} campName={activeCamp} />
         <RightPanel trending={trending} />
       </div>
+      
+        href="/privacy"
+        className="fixed bottom-3 right-3 text-[10px] text-[#6B5A4A] hover:text-[#F97316] z-50"
+      >
+        Privacy Policy
+      </a>
     </div>
   )
 }
