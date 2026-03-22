@@ -8,6 +8,9 @@ export const metadata: Metadata = {
   icons: { icon: '/favicon.svg' },
   verification: {
     google: 'S8xwMMjB-B5LIkkGjDEXCx3LsZkYE9RUBpm51QlMc8c',
+    other: {
+      'google-adsense-account': 'ca-pub-3645158319821683',
+    },
   },
 }
 
