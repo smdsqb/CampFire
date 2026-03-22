@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
 import CampfireScene from '@/components/layout/CampfireScene'
 import Sidebar       from '@/components/layout/Sidebar'
 import CampList      from '@/components/layout/CampList'
@@ -8,6 +9,7 @@ import Feed          from '@/components/feed/Feed'
 import RightPanel    from '@/components/layout/RightPanel'
 import { getCamps }  from '@/lib/db'
 import { subscribeToPosts } from '@/lib/db'
+import { supabase } from '@/lib/supabase'
 import type { Camp, Post } from '@/types'
 
 export default function HomePage() {
@@ -15,6 +17,15 @@ export default function HomePage() {
   const [activeCamp, setActiveCamp] = useState<string | null>(null)
   const [trending,   setTrending]   = useState<Post[]>([])
   const [navActive,  setNavActive]  = useState('Home')
+
+  useEffect(() => {
+    // Handle hash-based auth redirect from Google OAuth
+    if (window.location.hash && window.location.hash.includes('access_token')) {
+      supabase.auth.getSession().then(() => {
+        window.history.replaceState(null, '', window.location.pathname)
+      })
+    }
+  }, [])
 
   useEffect(() => {
     getCamps().then(setCamps)
