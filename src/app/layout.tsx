@@ -5,6 +5,9 @@ import { AuthProvider } from '@/lib/auth-context'
 export const metadata: Metadata = {
   title: 'CampFire — Gather Around',
   description: 'Every great conversation starts with a spark.',
+  verification: {
+    google: 'S8xwMMjB-B5LIkkGjDEXCx3LsZkYE9RUBpm51QlMc8c',
+  },
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
