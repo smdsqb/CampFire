@@ -45,7 +45,7 @@ export default function HomePage() {
         <RightPanel trending={trending} />
       </div>
       
-        href="/privacy"
+        <a href="/privacy"
         className="fixed bottom-3 right-3 text-[10px] text-[#6B5A4A] hover:text-[#F97316] z-50"
       >
         Privacy Policy
