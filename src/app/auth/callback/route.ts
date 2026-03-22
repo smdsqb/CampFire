@@ -16,8 +16,3 @@ export async function GET(request: Request) {
 
   return NextResponse.redirect(`${origin}`)
 }
-```
-
-Then in Supabase → **Authentication** → **URL Configuration** → **Redirect URLs** make sure you have:
-```
-https://campfires.vercel.app/**
