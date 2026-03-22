@@ -9,7 +9,10 @@ interface Props {
   camps: Camp[]
   activeCamp: string | null
   onSelect: (campName: string | null) => void
+  onlineCount: number
 }
+
+export default function CampList({ camps, activeCamp, onSelect, onlineCount }: Props) {
 
 export default function CampList({ camps, activeCamp, onSelect }: Props) {
   const list = camps.length > 0
@@ -23,7 +26,7 @@ export default function CampList({ camps, activeCamp, onSelect }: Props) {
         <div className="font-serif text-base font-semibold text-[#F5EFE8]">🔥 CampFire</div>
         <div className="text-[11px] text-[#6B5A4A] mt-1 flex items-center gap-1">
           <span className="inline-block w-[6px] h-[6px] rounded-full bg-green-500" style={{ boxShadow: '0 0 6px #22C55E' }} />
-          48,291 online
+          {onlineCount.toLocaleString()} online
         </div>
       </div>
 
