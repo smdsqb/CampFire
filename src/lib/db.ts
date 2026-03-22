@@ -1,40 +1,64 @@
-import { supabase } from './supabase'
+import {
+  collection, doc, addDoc, updateDoc, deleteDoc,
+  getDocs, getDoc, query, where, orderBy, limit,
+  increment, serverTimestamp, onSnapshot,
+  type Query, type DocumentData,
+} from 'firebase/firestore'
+import { db } from './firebase'
 import type { Post, Camp, Comment, SortMode } from '@/types'
 
+// ── CAMPS ────────────────────────────────────────────────
 export async function getCamps(): Promise<Camp[]> {
-  const { data, error } = await supabase
-    .from('camps')
-    .select('*')
-    .order('member_count', { ascending: false })
-  if (error) throw error
-  return (data ?? []).map(toCamp)
+  const snap = await getDocs(collection(db, 'camps'))
+  return snap.docs.map(d => ({ id: d.id, ...d.data() } as Camp))
 }
 
-export async function getPosts(campId: string | null, sort: SortMode): Promise<Post[]> {
-  let q = supabase.from('posts').select('*')
-  if (campId) q = q.eq('camp_id', campId)
-  if (sort === 'new') q = q.order('created_at', { ascending: false })
-  else if (sort === 'rising') q = q.order('comment_count', { ascending: false })
-  else q = q.order('upvotes', { ascending: false })
-  q = q.limit(50)
-  const { data, error } = await q
-  if (error) throw error
-  return (data ?? []).map(toPost)
+export async function getCamp(campId: string): Promise<Camp | null> {
+  const snap = await getDoc(doc(db, 'camps', campId))
+  return snap.exists() ? ({ id: snap.id, ...snap.data() } as Camp) : null
 }
 
+// ── POSTS ────────────────────────────────────────────────
 export function subscribeToPosts(
   campId: string | null,
   sort: SortMode,
   cb: (posts: Post[]) => void,
 ) {
-  getPosts(campId, sort).then(cb)
-  const channel = supabase
-    .channel('posts-changes')
-    .on('postgres_changes', { event: '*', schema: 'public', table: 'posts' }, () => {
-      getPosts(campId, sort).then(cb)
-    })
-    .subscribe()
-  return () => { supabase.removeChannel(channel) }
+  const ref = collection(db, 'posts')
+  let q: Query<DocumentData>
+
+  if (campId) {
+    q = sort === 'new'
+      ? query(ref, where('campId', '==', campId), orderBy('createdAt', 'desc'), limit(30))
+      : query(ref, where('campId', '==', campId), orderBy('upvotes', 'desc'), limit(30))
+  } else {
+    q = sort === 'new'
+      ? query(ref, orderBy('createdAt', 'desc'), limit(50))
+      : query(ref, orderBy('upvotes', 'desc'), limit(50))
+  }
+
+  return onSnapshot(q, snap => {
+    cb(snap.docs.map(d => {
+      const data = d.data()
+      return {
+        id:           d.id,
+        title:        data.title,
+        body:         data.body,
+        campId:       data.campId,
+        campName:     data.campName,
+        campIcon:     data.campIcon,
+        authorId:     data.authorId,
+        authorName:   data.authorName,
+        authorAvatar: data.authorAvatar,
+        upvotes:      data.upvotes,
+        downvotes:    data.downvotes,
+        commentCount: data.commentCount,
+        createdAt:    data.createdAt?.toDate() ?? new Date(),
+        tags:         data.tags ?? [],
+        awards:       data.awards ?? [],
+      } as Post
+    }))
+  })
 }
 
 export async function createPost(data: {
@@ -42,140 +66,98 @@ export async function createPost(data: {
   campIcon: string; authorId: string; authorName: string
   authorAvatar?: string; tags: string[]
 }): Promise<string> {
-  const { data: row, error } = await supabase.from('posts').insert({
-    title:         data.title,
-    body:          data.body ?? '',
-    camp_id:       data.campId,
-    camp_name:     data.campName,
-    camp_icon:     data.campIcon,
-    author_id:     data.authorId,
-    author_name:   data.authorName,
-    author_avatar: data.authorAvatar ?? null,
-    tags:          data.tags,
-    upvotes:       1,
-    downvotes:     0,
-    comment_count: 0,
-    awards:        [],
-  }).select('id').single()
-  if (error) throw error
-  return row.id
+  const ref = await addDoc(collection(db, 'posts'), {
+    ...data,
+    upvotes:      1,
+    downvotes:    0,
+    commentCount: 0,
+    awards:       [],
+    createdAt:    serverTimestamp(),
+  })
+  return ref.id
 }
 
-export async function castVote(postId: string, userId: string, value: 1 | -1) {
-  const { data: existing } = await supabase
-    .from('votes')
-    .select('*')
-    .eq('post_id', postId)
-    .eq('user_id', userId)
-    .single()
+export async function deletePost(postId: string) {
+  await deleteDoc(doc(db, 'posts', postId))
+}
 
-  if (existing) {
-    if (existing.value === value) {
-      await supabase.from('votes').delete().eq('id', existing.id)
-      await supabase.rpc('adjust_votes', {
-        p_post_id: postId,
-        p_upvote_delta:   value === 1  ? -1 : 0,
-        p_downvote_delta: value === -1 ? -1 : 0,
+// ── VOTES ────────────────────────────────────────────────
+export async function castVote(postId: string, userId: string, value: 1 | -1) {
+  const voteRef = doc(db, 'votes', `${postId}_${userId}`)
+  const existing = await getDoc(voteRef)
+  const postRef = doc(db, 'posts', postId)
+
+  if (existing.exists()) {
+    if (existing.data().value === value) {
+      await deleteDoc(voteRef)
+      await updateDoc(postRef, {
+        [value === 1 ? 'upvotes' : 'downvotes']: increment(-1),
       })
     } else {
-      await supabase.from('votes').update({ value }).eq('id', existing.id)
-      await supabase.rpc('adjust_votes', {
-        p_post_id: postId,
-        p_upvote_delta:   value === 1  ?  1 : -1,
-        p_downvote_delta: value === -1 ?  1 : -1,
+      await updateDoc(voteRef, { value })
+      await updateDoc(postRef, {
+        upvotes:   increment(value === 1 ?  1 : -1),
+        downvotes: increment(value === -1 ? 1 : -1),
       })
     }
   } else {
-    await supabase.from('votes').insert({ post_id: postId, user_id: userId, value })
-    await supabase.rpc('adjust_votes', {
-      p_post_id: postId,
-      p_upvote_delta:   value === 1  ? 1 : 0,
-      p_downvote_delta: value === -1 ? 1 : 0,
+    await addDoc(collection(db, 'votes'), { postId, userId, value })
+    await updateDoc(postRef, {
+      [value === 1 ? 'upvotes' : 'downvotes']: increment(1),
     })
   }
 }
 
+// ── COMMENTS ─────────────────────────────────────────────
 export function subscribeToComments(postId: string, cb: (comments: Comment[]) => void) {
-  const fetch = async () => {
-    const { data } = await supabase
-      .from('comments')
-      .select('*')
-      .eq('post_id', postId)
-      .order('created_at', { ascending: true })
-    cb((data ?? []).map(toComment))
-  }
-  fetch()
-  const channel = supabase
-    .channel(`comments-${postId}`)
-    .on('postgres_changes', { event: '*', schema: 'public', table: 'comments', filter: `post_id=eq.${postId}` }, fetch)
-    .subscribe()
-  return () => { supabase.removeChannel(channel) }
+  const q = query(
+    collection(db, 'comments'),
+    where('postId', '==', postId),
+    orderBy('createdAt', 'asc'),
+  )
+  return onSnapshot(q, snap => {
+    cb(snap.docs.map(d => {
+      const data = d.data()
+      return {
+        id:           d.id,
+        postId:       data.postId,
+        authorId:     data.authorId,
+        authorName:   data.authorName,
+        authorAvatar: data.authorAvatar,
+        body:         data.body,
+        upvotes:      data.upvotes,
+        downvotes:    data.downvotes,
+        createdAt:    data.createdAt?.toDate() ?? new Date(),
+        parentId:     data.parentId,
+      } as Comment
+    }))
+  })
 }
 
 export async function createComment(data: {
   postId: string; authorId: string; authorName: string
   authorAvatar?: string; body: string; parentId?: string
 }): Promise<string> {
-  const { data: row, error } = await supabase.from('comments').insert({
-    post_id:       data.postId,
-    author_id:     data.authorId,
-    author_name:   data.authorName,
-    author_avatar: data.authorAvatar ?? null,
-    body:          data.body,
-    parent_id:     data.parentId ?? null,
-    upvotes:       1,
-    downvotes:     0,
-  }).select('id').single()
-  if (error) throw error
-  await supabase.rpc('increment_comment_count', { p_post_id: data.postId })
-  return row.id
+  const ref = await addDoc(collection(db, 'comments'), {
+    ...data,
+    upvotes:   1,
+    downvotes: 0,
+    createdAt: serverTimestamp(),
+  })
+  await updateDoc(doc(db, 'posts', data.postId), { commentCount: increment(1) })
+  return ref.id
 }
 
-function toCamp(r: any): Camp {
+// ── STATS ─────────────────────────────────────────────────
+export async function getStats() {
+  const [posts, camps, members] = await Promise.all([
+    getDocs(collection(db, 'posts')),
+    getDocs(collection(db, 'camps')),
+    getDocs(collection(db, 'memberships')),
+  ])
   return {
-    id:          r.id,
-    name:        r.name,
-    displayName: r.display_name,
-    description: r.description,
-    icon:        r.icon,
-    color:       r.color,
-    memberCount: r.member_count,
-    createdAt:   new Date(r.created_at),
-    createdBy:   r.created_by,
-  }
-}
-
-function toPost(r: any): Post {
-  return {
-    id:           r.id,
-    title:        r.title,
-    body:         r.body,
-    campId:       r.camp_id,
-    campName:     r.camp_name,
-    campIcon:     r.camp_icon,
-    authorId:     r.author_id,
-    authorName:   r.author_name,
-    authorAvatar: r.author_avatar,
-    upvotes:      r.upvotes,
-    downvotes:    r.downvotes,
-    commentCount: r.comment_count,
-    createdAt:    new Date(r.created_at),
-    tags:         r.tags ?? [],
-    awards:       r.awards ?? [],
-  }
-}
-
-function toComment(r: any): Comment {
-  return {
-    id:           r.id,
-    postId:       r.post_id,
-    authorId:     r.author_id,
-    authorName:   r.author_name,
-    authorAvatar: r.author_avatar,
-    body:         r.body,
-    upvotes:      r.upvotes,
-    downvotes:    r.downvotes,
-    createdAt:    new Date(r.created_at),
-    parentId:     r.parent_id,
+    postCount:   posts.size,
+    campCount:   camps.size,
+    memberCount: members.size,
   }
 }
