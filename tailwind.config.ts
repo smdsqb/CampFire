@@ -9,8 +9,8 @@ const config: Config = {
   theme: {
     extend: {
       fontFamily: {
-        sans:  ['Plus Jakarta Sans', 'sans-serif'],
-        serif: ['Fraunces', 'serif'],
+        sans:  ['Nunito', 'sans-serif'],
+        serif: ['Righteous', 'cursive'],
       },
     },
   },
