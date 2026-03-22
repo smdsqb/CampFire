@@ -24,23 +24,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    // Force refresh session on mount
-    supabase.auth.refreshSession().then(({ data: { session } }) => {
-      if (session) {
-        setSession(session)
-        setUser(session.user)
-        setLoading(false)
-        return
-      }
-      // Fall back to getSession
-      supabase.auth.getSession().then(({ data: { session } }) => {
-        setSession(session)
-        setUser(session?.user ?? null)
-        setLoading(false)
-      })
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session)
+      setUser(session?.user ?? null)
+      setLoading(false)
     })
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      console.log('Auth event:', event, session)
       setSession(session)
       setUser(session?.user ?? null)
       setLoading(false)
@@ -50,12 +41,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [])
 
   async function signInWithGoogle() {
-    await supabase.auth.signInWithOAuth({
+    const { data, error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
         redirectTo: 'https://campfires.vercel.app/auth/callback',
       },
     })
+    console.log('OAuth result:', data, error)
   }
 
   async function signOut() {
