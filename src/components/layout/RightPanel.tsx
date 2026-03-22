@@ -13,6 +13,7 @@ export default function RightPanel({ trending }: Props) {
   const [memberCount, setMemberCount] = useState(0)
   const [campCount,   setCampCount]   = useState(0)
   const [postCount,   setPostCount]   = useState(0)
+  const [onlineCount, setOnlineCount] = useState(1)
 
   useEffect(() => {
     async function fetchStats() {
@@ -27,13 +28,31 @@ export default function RightPanel({ trending }: Props) {
     }
     fetchStats()
 
-    const channel = supabase
+    const roomChannel = supabase.channel('online-users', {
+      config: { presence: { key: Math.random().toString(36).slice(2) } }
+    })
+
+    roomChannel
+      .on('presence', { event: 'sync' }, () => {
+        const state = roomChannel.presenceState()
+        setOnlineCount(Object.keys(state).length)
+      })
+      .subscribe(async (status) => {
+        if (status === 'SUBSCRIBED') {
+          await roomChannel.track({ online_at: new Date().toISOString() })
+        }
+      })
+
+    const statsChannel = supabase
       .channel('stats')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'memberships' }, fetchStats)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'posts' }, fetchStats)
       .subscribe()
 
-    return () => { supabase.removeChannel(channel) }
+    return () => {
+      supabase.removeChannel(roomChannel)
+      supabase.removeChannel(statsChannel)
+    }
   }, [])
 
   return (
@@ -63,8 +82,11 @@ export default function RightPanel({ trending }: Props) {
             <div className="text-[10px] text-[#6B5A4A]">members</div>
           </div>
           <div>
-            <div className="text-sm font-semibold text-[#F5EFE8]">{formatCount(postCount)}</div>
-            <div className="text-[10px] text-[#6B5A4A]">posts</div>
+            <div className="text-sm font-semibold text-[#F5EFE8] flex items-center justify-center gap-1">
+              <span className="inline-block w-1.5 h-1.5 rounded-full bg-green-500"></span>
+              {formatCount(onlineCount)}
+            </div>
+            <div className="text-[10px] text-[#6B5A4A]">online</div>
           </div>
           <div>
             <div className="text-sm font-semibold text-[#F5EFE8]">{formatCount(campCount)}</div>
@@ -84,14 +106,17 @@ export default function RightPanel({ trending }: Props) {
             </div>
           </div>
         ))}
-        {trending.length === 0 && <p className="text-xs text-[#6B5A4A] py-2">No trending posts yet.</p>}
+        {trending.length === 0 && (
+          <p className="text-xs text-[#6B5A4A] py-2">No trending posts yet.</p>
+        )}
       </Widget>
 
       <Widget title="⚡ Live Stats">
         {[
-          ['🔥 Posts', formatCount(postCount)],
-          ['🏕️ Camps', formatCount(campCount)],
+          ['🔥 Posts',   formatCount(postCount)],
+          ['🏕️ Camps',   formatCount(campCount)],
           ['👥 Members', formatCount(memberCount)],
+          ['🟢 Online',  formatCount(onlineCount)],
         ].map(([label, val]) => (
           <div key={label} className="flex items-center justify-between py-1.5">
             <span className="text-xs text-[#A89880]">{label}</span>
@@ -99,14 +124,18 @@ export default function RightPanel({ trending }: Props) {
           </div>
         ))}
       </Widget>
+
     </div>
   )
 }
 
 function Widget({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <div className="rounded-xl overflow-hidden border border-[#2E2820]" style={{ background: 'rgba(20,16,12,.9)' }}>
-      <div className="px-3 py-2.5 text-[10px] font-semibold tracking-widest uppercase text-[#6B5A4A] border-b border-[#2E2820]">{title}</div>
+    <div className="rounded-xl overflow-hidden border border-[#2E2820]"
+      style={{ background: 'rgba(20,16,12,.9)' }}>
+      <div className="px-3 py-2.5 text-[10px] font-semibold tracking-widest uppercase text-[#6B5A4A] border-b border-[#2E2820]">
+        {title}
+      </div>
       <div className="px-3 py-1">{children}</div>
     </div>
   )
