@@ -6,9 +6,9 @@ import { formatCount } from '@/lib/utils'
 import { supabase } from '@/lib/supabase'
 import type { Post } from '@/types'
 
-interface Props { trending: Post[] }
+interface Props { trending: Post[]; onOnlineCount: (n: number) => void }
 
-export default function RightPanel({ trending }: Props) {
+export default function RightPanel({ trending, onOnlineCount }: Props) {
   const { user, signInWithGoogle } = useAuth()
   const [memberCount, setMemberCount] = useState(0)
   const [campCount,   setCampCount]   = useState(0)
@@ -35,7 +35,9 @@ export default function RightPanel({ trending }: Props) {
     roomChannel
       .on('presence', { event: 'sync' }, () => {
         const state = roomChannel.presenceState()
-        setOnlineCount(Object.keys(state).length)
+        const count = Object.keys(state).length
+        setOnlineCount(count)
+        onOnlineCount(count)
       })
       .subscribe(async (status) => {
         if (status === 'SUBSCRIBED') {
