@@ -7,7 +7,6 @@ import CampList from '@/components/layout/CampList'
 import Feed from '@/components/feed/Feed'
 import RightPanel from '@/components/layout/RightPanel'
 import { getCamps, subscribeToPosts } from '@/lib/db'
-import { supabase } from '@/lib/supabase'
 import type { Camp, Post } from '@/types'
 
 export default function HomePage() {
@@ -16,14 +15,6 @@ export default function HomePage() {
   const [trending, setTrending] = useState<Post[]>([])
   const [navActive, setNavActive] = useState('Home')
   const [onlineCount, setOnlineCount] = useState(1)
-
-  useEffect(() => {
-    if (typeof window !== 'undefined' && window.location.hash.includes('access_token')) {
-      supabase.auth.getSession().then(() => {
-        window.history.replaceState(null, '', window.location.pathname)
-      })
-    }
-  }, [])
 
   useEffect(() => {
     getCamps().then(setCamps)
