@@ -1,13 +1,40 @@
 'use client'
 
+import { useEffect, useState } from 'react'
 import { useAuth } from '@/lib/auth-context'
 import { formatCount } from '@/lib/utils'
+import { supabase } from '@/lib/supabase'
 import type { Post } from '@/types'
 
 interface Props { trending: Post[] }
 
 export default function RightPanel({ trending }: Props) {
   const { user, signInWithGoogle } = useAuth()
+  const [memberCount, setMemberCount] = useState(0)
+  const [campCount,   setCampCount]   = useState(0)
+  const [postCount,   setPostCount]   = useState(0)
+
+  useEffect(() => {
+    async function fetchStats() {
+      const [members, camps, posts] = await Promise.all([
+        supabase.from('memberships').select('*', { count: 'exact', head: true }),
+        supabase.from('camps').select('*', { count: 'exact', head: true }),
+        supabase.from('posts').select('*', { count: 'exact', head: true }),
+      ])
+      setMemberCount(members.count ?? 0)
+      setCampCount(camps.count ?? 0)
+      setPostCount(posts.count ?? 0)
+    }
+    fetchStats()
+
+    const channel = supabase
+      .channel('stats')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'memberships' }, fetchStats)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'posts' }, fetchStats)
+      .subscribe()
+
+    return () => { supabase.removeChannel(channel) }
+  }, [])
 
   return (
     <div className="w-[210px] flex-shrink-0 border-l border-[#2E2820] overflow-y-auto px-3 py-3 flex flex-col gap-3 glass">
@@ -31,12 +58,18 @@ export default function RightPanel({ trending }: Props) {
           </button>
         )}
         <div className="flex justify-around mt-3">
-          {[['2.4M', 'members'], ['48k', 'online'], ['12k', 'camps']].map(([n, l]) => (
-            <div key={l}>
-              <div className="text-sm font-semibold text-[#F5EFE8]">{n}</div>
-              <div className="text-[10px] text-[#6B5A4A]">{l}</div>
-            </div>
-          ))}
+          <div>
+            <div className="text-sm font-semibold text-[#F5EFE8]">{formatCount(memberCount)}</div>
+            <div className="text-[10px] text-[#6B5A4A]">members</div>
+          </div>
+          <div>
+            <div className="text-sm font-semibold text-[#F5EFE8]">{formatCount(postCount)}</div>
+            <div className="text-[10px] text-[#6B5A4A]">posts</div>
+          </div>
+          <div>
+            <div className="text-sm font-semibold text-[#F5EFE8]">{formatCount(campCount)}</div>
+            <div className="text-[10px] text-[#6B5A4A]">camps</div>
+          </div>
         </div>
       </div>
 
@@ -56,10 +89,9 @@ export default function RightPanel({ trending }: Props) {
 
       <Widget title="⚡ Live Stats">
         {[
-          ['🔥 Posts today', '14,892'],
-          ['💬 Comments',    '89,341'],
-          ['⭐ Awards',      '2,104'],
-          ['🌱 New camps',   '47'],
+          ['🔥 Posts', formatCount(postCount)],
+          ['🏕️ Camps', formatCount(campCount)],
+          ['👥 Members', formatCount(memberCount)],
         ].map(([label, val]) => (
           <div key={label} className="flex items-center justify-between py-1.5">
             <span className="text-xs text-[#A89880]">{label}</span>
