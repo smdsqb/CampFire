@@ -14,7 +14,7 @@ import type { Camp, Post } from '@/types'
 export default function CampPage() {
   const { name } = useParams<{ name: string }>()
   const router = useRouter()
-  const [camp,  setCamp]  = useState<Camp | null>(null)
+  const [camp, setCamp] = useState<Camp | null>(null)
   const [posts, setPosts] = useState<Post[]>([])
 
   useEffect(() => {
@@ -26,7 +26,7 @@ export default function CampPage() {
   }, [name])
 
   return (
-    <div className="relative w-screen h-screen overflow-hidden">
+    <div className="relative w-full min-h-dvh overflow-hidden">
       <CampfireScene />
       <div className="relative z-10 h-full overflow-y-auto">
         <div className="max-w-2xl mx-auto px-4 py-6">

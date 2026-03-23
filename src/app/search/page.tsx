@@ -11,7 +11,7 @@ import type { Post } from '@/types'
 
 export default function SearchPage() {
   const router = useRouter()
-  const [q,       setQ]       = useState('')
+  const [q, setQ] = useState('')
   const [results, setResults] = useState<Post[]>([])
   const [loading, setLoading] = useState(false)
   const [searched, setSearched] = useState(false)
@@ -42,7 +42,7 @@ export default function SearchPage() {
   }
 
   return (
-    <div className="relative w-screen h-screen overflow-hidden">
+    <div className="relative w-full min-h-dvh overflow-hidden">
       <CampfireScene />
       <div className="relative z-10 h-full overflow-y-auto">
         <div className="max-w-2xl mx-auto px-4 py-6">

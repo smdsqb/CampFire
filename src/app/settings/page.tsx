@@ -27,7 +27,7 @@ export default function SettingsPage() {
   }
 
   return (
-    <div className="relative w-screen h-screen overflow-hidden">
+    <div className="relative w-full min-h-dvh overflow-hidden">
       <CampfireScene />
       <div className="relative z-10 h-full overflow-y-auto">
         <div className="max-w-xl mx-auto px-4 py-6">

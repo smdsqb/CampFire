@@ -14,10 +14,10 @@ export default function ProfilePage() {
   const { id } = useParams<{ id: string }>()
   const router = useRouter()
   const { user } = useAuth()
-  const [profile,   setProfile]   = useState<any>(null)
-  const [posts,     setPosts]     = useState<Post[]>([])
-  const [tab,       setTab]       = useState<'posts' | 'comments'>('posts')
-  const [loading,   setLoading]   = useState(true)
+  const [profile, setProfile] = useState<any>(null)
+  const [posts, setPosts] = useState<Post[]>([])
+  const [tab, setTab] = useState<'posts' | 'comments'>('posts')
+  const [loading, setLoading] = useState(true)
 
   const isOwnProfile = user?.uid === id
 
@@ -36,21 +36,21 @@ export default function ProfilePage() {
       setPosts(postsSnap.docs.map(d => {
         const data = d.data()
         return {
-          id:           d.id,
-          title:        data.title,
-          body:         data.body,
-          campId:       data.campId,
-          campName:     data.campName,
-          campIcon:     data.campIcon,
-          authorId:     data.authorId,
-          authorName:   data.authorName,
+          id: d.id,
+          title: data.title,
+          body: data.body,
+          campId: data.campId,
+          campName: data.campName,
+          campIcon: data.campIcon,
+          authorId: data.authorId,
+          authorName: data.authorName,
           authorAvatar: data.authorAvatar,
-          upvotes:      data.upvotes,
-          downvotes:    data.downvotes,
+          upvotes: data.upvotes,
+          downvotes: data.downvotes,
           commentCount: data.commentCount,
-          createdAt:    data.createdAt?.toDate() ?? new Date(),
-          tags:         data.tags ?? [],
-          awards:       data.awards ?? [],
+          createdAt: data.createdAt?.toDate() ?? new Date(),
+          tags: data.tags ?? [],
+          awards: data.awards ?? [],
         } as Post
       }))
       setLoading(false)
@@ -59,7 +59,7 @@ export default function ProfilePage() {
   }, [id])
 
   if (loading) return (
-    <div className="relative w-screen h-screen overflow-hidden">
+    <div className="relative w-full min-h-dvh overflow-hidden">
       <CampfireScene />
       <div className="relative z-10 flex items-center justify-center h-full">
         <div className="text-[#F97316] text-2xl animate-pulse">🔥</div>
@@ -68,7 +68,7 @@ export default function ProfilePage() {
   )
 
   return (
-    <div className="relative w-screen h-screen overflow-hidden">
+    <div className="relative w-full min-h-dvh overflow-hidden">
       <CampfireScene />
       <div className="relative z-10 h-full overflow-y-auto">
         <div className="max-w-2xl mx-auto px-4 py-6">

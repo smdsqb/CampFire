@@ -15,11 +15,11 @@ export default function PostPage() {
   const { id } = useParams<{ id: string }>()
   const router = useRouter()
   const { user } = useAuth()
-  const [post,      setPost]      = useState<Post | null>(null)
-  const [comments,  setComments]  = useState<Comment[]>([])
-  const [body,      setBody]      = useState('')
-  const [loading,   setLoading]   = useState(false)
-  const [votes,     setVotes]     = useState(0)
+  const [post, setPost] = useState<Post | null>(null)
+  const [comments, setComments] = useState<Comment[]>([])
+  const [body, setBody] = useState('')
+  const [loading, setLoading] = useState(false)
+  const [votes, setVotes] = useState(0)
   const [voteState, setVoteState] = useState<1 | -1 | 0>(0)
 
   useEffect(() => {
@@ -55,18 +55,18 @@ export default function PostPage() {
     if (!user || !body.trim()) return
     setLoading(true)
     await createComment({
-      postId:       id,
-      authorId:     user.uid,
-      authorName:   user.displayName ?? 'Anonymous',
+      postId: id,
+      authorId: user.uid,
+      authorName: user.displayName ?? 'Anonymous',
       authorAvatar: user.photoURL ?? undefined,
-      body:         body.trim(),
+      body: body.trim(),
     })
     setBody('')
     setLoading(false)
   }
 
   if (!post) return (
-    <div className="relative w-screen h-screen overflow-hidden">
+    <div className="relative w-full min-h-dvh overflow-hidden">
       <CampfireScene />
       <div className="relative z-10 flex items-center justify-center h-full">
         <div className="text-[#F97316] text-2xl animate-pulse">🔥</div>
@@ -75,7 +75,7 @@ export default function PostPage() {
   )
 
   return (
-    <div className="relative w-screen h-screen overflow-hidden">
+    <div className="relative w-full min-h-dvh overflow-hidden">
       <CampfireScene />
       <div className="relative z-10 h-full overflow-y-auto">
         <div className="max-w-2xl mx-auto px-4 py-6">

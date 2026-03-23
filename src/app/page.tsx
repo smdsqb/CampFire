@@ -28,13 +28,15 @@ export default function HomePage() {
   const activeCampObj = camps.find((c) => c.name === activeCamp) ?? null
 
   return (
-    <div className="relative w-screen h-screen overflow-hidden">
+    <div className="relative w-full min-h-dvh overflow-hidden">
       <CampfireScene />
-      <div className="relative z-10 flex h-full">
+      <div className="relative z-10 flex h-full flex-col pb-14 md:flex-row md:pb-0">
         <Sidebar active={navActive} onNav={setNavActive} />
         <CampList camps={camps} activeCamp={activeCamp} onSelect={setActiveCamp} onlineCount={onlineCount} />
         <Feed campId={activeCampObj?.id ?? null} campName={activeCamp} />
-        <RightPanel trending={trending} onOnlineCount={setOnlineCount} />
+        <div className="hidden lg:block">
+          <RightPanel trending={trending} onOnlineCount={setOnlineCount} />
+        </div>
       </div>
       <a href="/privacy" className="fixed bottom-3 right-3 text-[10px] text-[#6B5A4A] hover:text-[#F97316] z-50">
         Privacy Policy
