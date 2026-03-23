@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { MessageCircle, Share2, Bookmark, Star } from 'lucide-react'
 import { formatCount, timeAgo } from '@/lib/utils'
 import { castVote } from '@/lib/db'
@@ -11,7 +12,8 @@ interface Props { post: Post }
 
 export default function PostCard({ post }: Props) {
   const { user } = useAuth()
-  const [upvotes, setUpvotes] = useState(post.upvotes)
+  const router = useRouter()
+  const [upvotes,   setUpvotes]   = useState(post.upvotes)
   const [downvotes, setDownvotes] = useState(post.downvotes)
   const [voteState, setVoteState] = useState<1 | -1 | 0>(0)
 
@@ -20,7 +22,6 @@ export default function PostCard({ post }: Props) {
     const prev = voteState
     const next: 1 | -1 | 0 = prev === val ? 0 : val
     setVoteState(next)
-
     if (next === 0) {
       if (val === 1) setUpvotes(v => Math.max(0, v - 1))
       else setDownvotes(v => Math.max(0, v - 1))
@@ -34,8 +35,12 @@ export default function PostCard({ post }: Props) {
       setDownvotes(v => Math.max(0, v - 1))
       setUpvotes(v => v + 1)
     }
-
     await castVote(post.id, user.uid, val)
+  }
+
+  function handleShare() {
+    navigator.clipboard.writeText(`https://campfires.vercel.app/post/${post.id}`)
+    alert('Link copied! 🔥')
   }
 
   const ts = (post.createdAt as any)?.seconds
@@ -73,7 +78,9 @@ export default function PostCard({ post }: Props) {
             ))}
           </div>
 
-          <p className="font-serif text-[15px] font-semibold leading-snug mb-1 cursor-pointer text-[#F5EFE8] hover:text-[#F97316] transition-colors line-clamp-2">
+          <p
+            onClick={() => router.push(`/post/${post.id}`)}
+            className="font-serif text-[15px] font-semibold leading-snug mb-1 cursor-pointer text-[#F5EFE8] hover:text-[#F97316] transition-colors line-clamp-2">
             {post.title}
           </p>
 
@@ -114,20 +121,35 @@ export default function PostCard({ post }: Props) {
             </span>
           </button>
         </div>
-        <ActionBtn icon={<MessageCircle size={13} />} label={formatCount(post.commentCount)} />
-        <ActionBtn icon={<Share2 size={13} />} label="Share" />
-        <ActionBtn icon={<Bookmark size={13} />} label="Save" />
-        <ActionBtn icon={<Star size={13} />} label="Award" />
+
+        <button
+          onClick={() => router.push(`/post/${post.id}`)}
+          className="flex items-center gap-1 px-2.5 py-1.5 rounded-full text-xs font-medium text-[#A89880] hover:text-[#F5EFE8] transition-all border border-[#3D3228]"
+          style={{ background: 'rgba(255,255,255,.05)' }}>
+          <MessageCircle size={13} />{formatCount(post.commentCount)}
+        </button>
+
+        <button
+          onClick={handleShare}
+          className="flex items-center gap-1 px-2.5 py-1.5 rounded-full text-xs font-medium text-[#A89880] hover:text-[#F5EFE8] transition-all border border-[#3D3228]"
+          style={{ background: 'rgba(255,255,255,.05)' }}>
+          <Share2 size={13} />Share
+        </button>
+
+        <button
+          onClick={() => alert('Save coming soon! 🔥')}
+          className="flex items-center gap-1 px-2.5 py-1.5 rounded-full text-xs font-medium text-[#A89880] hover:text-[#F5EFE8] transition-all border border-[#3D3228]"
+          style={{ background: 'rgba(255,255,255,.05)' }}>
+          <Bookmark size={13} />Save
+        </button>
+
+        <button
+          onClick={() => alert('Awards coming soon! 🔥')}
+          className="flex items-center gap-1 px-2.5 py-1.5 rounded-full text-xs font-medium text-[#A89880] hover:text-[#F5EFE8] transition-all border border-[#3D3228]"
+          style={{ background: 'rgba(255,255,255,.05)' }}>
+          <Star size={13} />Award
+        </button>
       </div>
     </div>
-  )
-}
-
-function ActionBtn({ icon, label }: { icon: React.ReactNode; label: string }) {
-  return (
-    <button className="flex items-center gap-1 px-2.5 py-1.5 rounded-full text-xs font-medium text-[#A89880] hover:text-[#F5EFE8] transition-all border border-[#3D3228]"
-      style={{ background: 'rgba(255,255,255,.05)' }}>
-      {icon}{label}
-    </button>
   )
 }
