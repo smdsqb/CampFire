@@ -62,44 +62,11 @@ export interface Vote {
 }
 
 export interface Award {
-  type: 'ember' | 'onfire' | 'spark'
+  type: 'ember' | 'onfire' | 'spark' | 'log' | 'star'
   label: string
   icon: string
   grantedBy: string
 }
-
-export interface AppNotification {
-  id: string
-  userId: string
-  type: 'vote' | 'reply' | 'system'
-  title: string
-  body: string
-  postId?: string
-  commentId?: string
-  actorId?: string
-  actorName?: string
-  isRead: boolean
-  createdAt: Date
-}
-
-export interface Conversation {
-  id: string
-  members: string[]
-  memberNames?: Record<string, string>
-  lastMessage?: string
-  lastMessageAt?: Date
-}
-
-export interface ChatMessage {
-  id: string
-  conversationId: string
-  senderId: string
-  senderName: string
-  body: string
-  createdAt: Date
-}
-
-export type SortMode = 'hot' | 'new' | 'top' | 'rising'
 
 export interface AppNotification {
   id: string
@@ -131,3 +98,5 @@ export interface ChatMessage {
   body: string
   createdAt: Date
 }
+
+export type SortMode = 'hot' | 'new' | 'top' | 'rising'
