@@ -14,9 +14,8 @@ body {
   color: #F5EFE8;
   font-family: 'Nunito', sans-serif;
   font-size: 19px;
-  min-height: 100%;
-  overflow-x: hidden;
-  overflow-y: auto;
+  height: 100%;
+  overflow: hidden;
 }
 
 body {
