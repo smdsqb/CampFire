@@ -296,3 +296,9 @@ a {
     animation: none !important;
   }
 }
+.animate-flicker, .animate-flicker2, .animate-flicker3 {
+  will-change: transform, opacity;
+}
+.animate-sway, .animate-sway2 {
+  will-change: transform;
+}
