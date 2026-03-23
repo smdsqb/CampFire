@@ -1,7 +1,7 @@
 import {
   collection, doc, addDoc, updateDoc, deleteDoc,
   getDocs, getDoc, query, where, orderBy, limit,
-  increment, serverTimestamp, onSnapshot,
+  increment, serverTimestamp, onSnapshot, setDoc,
   type Query, type DocumentData,
 } from 'firebase/firestore'
 import { db } from './firebase'
@@ -41,21 +41,21 @@ export function subscribeToPosts(
     cb(snap.docs.map(d => {
       const data = d.data()
       return {
-        id:           d.id,
-        title:        data.title,
-        body:         data.body,
-        campId:       data.campId,
-        campName:     data.campName,
-        campIcon:     data.campIcon,
-        authorId:     data.authorId,
-        authorName:   data.authorName,
+        id: d.id,
+        title: data.title,
+        body: data.body,
+        campId: data.campId,
+        campName: data.campName,
+        campIcon: data.campIcon,
+        authorId: data.authorId,
+        authorName: data.authorName,
         authorAvatar: data.authorAvatar,
-        upvotes:      data.upvotes,
-        downvotes:    data.downvotes,
+        upvotes: data.upvotes,
+        downvotes: data.downvotes,
         commentCount: data.commentCount,
-        createdAt:    data.createdAt?.toDate() ?? new Date(),
-        tags:         data.tags ?? [],
-        awards:       data.awards ?? [],
+        createdAt: data.createdAt?.toDate() ?? new Date(),
+        tags: data.tags ?? [],
+        awards: data.awards ?? [],
       } as Post
     }))
   })
@@ -68,11 +68,11 @@ export async function createPost(data: {
 }): Promise<string> {
   const ref = await addDoc(collection(db, 'posts'), {
     ...data,
-    upvotes:      1,
-    downvotes:    0,
+    upvotes: 1,
+    downvotes: 0,
     commentCount: 0,
-    awards:       [],
-    createdAt:    serverTimestamp(),
+    awards: [],
+    createdAt: serverTimestamp(),
   })
   return ref.id
 }
@@ -96,12 +96,12 @@ export async function castVote(postId: string, userId: string, value: 1 | -1) {
     } else {
       await updateDoc(voteRef, { value })
       await updateDoc(postRef, {
-        upvotes:   increment(value === 1 ?  1 : -1),
+        upvotes: increment(value === 1 ? 1 : -1),
         downvotes: increment(value === -1 ? 1 : -1),
       })
     }
   } else {
-    await updateDoc(voteRef, { postId, userId, value })
+    await setDoc(voteRef, { postId, userId, value })
     await updateDoc(postRef, {
       [value === 1 ? 'upvotes' : 'downvotes']: increment(1),
     })
@@ -119,16 +119,16 @@ export function subscribeToComments(postId: string, cb: (comments: Comment[]) =>
     cb(snap.docs.map(d => {
       const data = d.data()
       return {
-        id:           d.id,
-        postId:       data.postId,
-        authorId:     data.authorId,
-        authorName:   data.authorName,
+        id: d.id,
+        postId: data.postId,
+        authorId: data.authorId,
+        authorName: data.authorName,
         authorAvatar: data.authorAvatar,
-        body:         data.body,
-        upvotes:      data.upvotes,
-        downvotes:    data.downvotes,
-        createdAt:    data.createdAt?.toDate() ?? new Date(),
-        parentId:     data.parentId,
+        body: data.body,
+        upvotes: data.upvotes,
+        downvotes: data.downvotes,
+        createdAt: data.createdAt?.toDate() ?? new Date(),
+        parentId: data.parentId,
       } as Comment
     }))
   })
@@ -140,7 +140,7 @@ export async function createComment(data: {
 }): Promise<string> {
   const ref = await addDoc(collection(db, 'comments'), {
     ...data,
-    upvotes:   1,
+    upvotes: 1,
     downvotes: 0,
     createdAt: serverTimestamp(),
   })
@@ -156,8 +156,8 @@ export async function getStats() {
     getDocs(collection(db, 'memberships')),
   ])
   return {
-    postCount:   posts.size,
-    campCount:   camps.size,
+    postCount: posts.size,
+    campCount: camps.size,
     memberCount: members.size,
   }
 }

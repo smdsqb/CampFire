@@ -11,7 +11,8 @@ interface Props { post: Post }
 
 export default function PostCard({ post }: Props) {
   const { user } = useAuth()
-  const [votes, setVotes] = useState(post.upvotes - post.downvotes)
+  const [upvotes, setUpvotes] = useState(post.upvotes)
+  const [downvotes, setDownvotes] = useState(post.downvotes)
   const [voteState, setVoteState] = useState<1 | -1 | 0>(0)
 
   async function handleVote(val: 1 | -1) {
@@ -19,7 +20,21 @@ export default function PostCard({ post }: Props) {
     const prev = voteState
     const next: 1 | -1 | 0 = prev === val ? 0 : val
     setVoteState(next)
-    setVotes(v => v + (next === 0 ? -val : val - prev))
+
+    if (next === 0) {
+      if (val === 1) setUpvotes(v => Math.max(0, v - 1))
+      else setDownvotes(v => Math.max(0, v - 1))
+    } else if (prev === 0) {
+      if (val === 1) setUpvotes(v => v + 1)
+      else setDownvotes(v => v + 1)
+    } else if (prev === 1 && val === -1) {
+      setUpvotes(v => Math.max(0, v - 1))
+      setDownvotes(v => v + 1)
+    } else if (prev === -1 && val === 1) {
+      setDownvotes(v => Math.max(0, v - 1))
+      setUpvotes(v => v + 1)
+    }
+
     await castVote(post.id, user.uid, val)
   }
 
@@ -87,13 +102,16 @@ export default function PostCard({ post }: Props) {
             className="flex items-center gap-1.5 px-3 py-1.5 transition-all hover:bg-[rgba(249,115,22,.12)]">
             <span className="text-sm leading-none" style={{ color: voteState === 1 ? '#F97316' : '#6B5A4A' }}>▲</span>
             <span className="text-xs font-bold" style={{ color: voteState === 1 ? '#F97316' : '#F5EFE8' }}>
-              {formatCount(votes)}
+              {formatCount(upvotes)}
             </span>
           </button>
           <div className="w-px h-5 bg-[#3D3228]" />
           <button onClick={() => handleVote(-1)}
-            className="flex items-center px-3 py-1.5 transition-all hover:bg-[rgba(239,68,68,.12)]">
+            className="flex items-center gap-1.5 px-3 py-1.5 transition-all hover:bg-[rgba(239,68,68,.12)]">
             <span className="text-sm leading-none" style={{ color: voteState === -1 ? '#EF4444' : '#6B5A4A' }}>▼</span>
+            <span className="text-xs font-bold" style={{ color: voteState === -1 ? '#EF4444' : '#F5EFE8' }}>
+              {formatCount(downvotes)}
+            </span>
           </button>
         </div>
         <ActionBtn icon={<MessageCircle size={13} />} label={formatCount(post.commentCount)} />

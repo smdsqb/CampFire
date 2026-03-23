@@ -5,7 +5,7 @@ import { useAuth } from '@/lib/auth-context'
 import { formatCount } from '@/lib/utils'
 import { getStats } from '@/lib/db'
 import { realtimeDb } from '@/lib/firebase'
-import { ref, onValue, set, onDisconnect, serverTimestamp as rtServerTimestamp } from 'firebase/database'
+import { ref, onValue, set, onDisconnect } from 'firebase/database'
 import type { Post } from '@/types'
 
 interface Props { trending: Post[]; onOnlineCount: (n: number) => void }

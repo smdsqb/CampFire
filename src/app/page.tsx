@@ -1,13 +1,15 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import dynamic from 'next/dynamic'
 import CampfireScene from '@/components/layout/CampfireScene'
 import Sidebar from '@/components/layout/Sidebar'
 import CampList from '@/components/layout/CampList'
 import Feed from '@/components/feed/Feed'
-import RightPanel from '@/components/layout/RightPanel'
 import { getCamps, subscribeToPosts } from '@/lib/db'
 import type { Camp, Post } from '@/types'
+
+const RightPanel = dynamic(() => import('@/components/layout/RightPanel'), { ssr: false })
 
 export default function HomePage() {
   const [camps, setCamps] = useState<Camp[]>([])
@@ -15,15 +17,31 @@ export default function HomePage() {
   const [trending, setTrending] = useState<Post[]>([])
   const [navActive, setNavActive] = useState('Home')
   const [onlineCount, setOnlineCount] = useState(1)
+  const [isDesktop, setIsDesktop] = useState(false)
 
   useEffect(() => {
     getCamps().then(setCamps)
   }, [])
 
   useEffect(() => {
+    const mediaQuery = window.matchMedia('(min-width: 1024px)')
+    const updateDesktop = () => setIsDesktop(mediaQuery.matches)
+
+    updateDesktop()
+    mediaQuery.addEventListener('change', updateDesktop)
+
+    return () => mediaQuery.removeEventListener('change', updateDesktop)
+  }, [])
+
+  useEffect(() => {
+    if (!isDesktop) {
+      setTrending([])
+      return
+    }
+
     const unsub = subscribeToPosts(null, 'hot', (posts) => setTrending(posts.slice(0, 4)))
     return () => unsub()
-  }, [])
+  }, [isDesktop])
 
   const activeCampObj = camps.find((c) => c.name === activeCamp) ?? null
 
@@ -35,7 +53,7 @@ export default function HomePage() {
         <CampList camps={camps} activeCamp={activeCamp} onSelect={setActiveCamp} onlineCount={onlineCount} />
         <Feed campId={activeCampObj?.id ?? null} campName={activeCamp} />
         <div className="hidden lg:block">
-          <RightPanel trending={trending} onOnlineCount={setOnlineCount} />
+          {isDesktop && <RightPanel trending={trending} onOnlineCount={setOnlineCount} />}
         </div>
       </div>
       <a href="/privacy" className="fixed right-3 bottom-[calc(4.75rem+env(safe-area-inset-bottom))] md:bottom-3 text-[10px] text-[#6B5A4A] hover:text-[#F97316] z-50">

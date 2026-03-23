@@ -19,7 +19,8 @@ export default function PostPage() {
   const [comments, setComments] = useState<Comment[]>([])
   const [body, setBody] = useState('')
   const [loading, setLoading] = useState(false)
-  const [votes, setVotes] = useState(0)
+  const [upvotes, setUpvotes] = useState(0)
+  const [downvotes, setDownvotes] = useState(0)
   const [voteState, setVoteState] = useState<1 | -1 | 0>(0)
 
   useEffect(() => {
@@ -35,7 +36,8 @@ export default function PostPage() {
         tags: data.tags ?? [], awards: data.awards ?? [],
       }
       setPost(p)
-      setVotes(p.upvotes - p.downvotes)
+      setUpvotes(p.upvotes)
+      setDownvotes(p.downvotes)
     })
 
     const unsub = subscribeToComments(id, setComments)
@@ -47,7 +49,21 @@ export default function PostPage() {
     const prev = voteState
     const next: 1 | -1 | 0 = prev === val ? 0 : val
     setVoteState(next)
-    setVotes(v => v + (next === 0 ? -val : val - prev))
+
+    if (next === 0) {
+      if (val === 1) setUpvotes(v => Math.max(0, v - 1))
+      else setDownvotes(v => Math.max(0, v - 1))
+    } else if (prev === 0) {
+      if (val === 1) setUpvotes(v => v + 1)
+      else setDownvotes(v => v + 1)
+    } else if (prev === 1 && val === -1) {
+      setUpvotes(v => Math.max(0, v - 1))
+      setDownvotes(v => v + 1)
+    } else if (prev === -1 && val === 1) {
+      setDownvotes(v => Math.max(0, v - 1))
+      setUpvotes(v => v + 1)
+    }
+
     await castVote(post.id, user.uid, val)
   }
 
@@ -114,13 +130,16 @@ export default function PostPage() {
                   className="flex items-center gap-1.5 px-3 py-1.5 transition-all hover:bg-[rgba(249,115,22,.12)]">
                   <span style={{ color: voteState === 1 ? '#F97316' : '#6B5A4A' }}>▲</span>
                   <span className="text-xs font-bold" style={{ color: voteState === 1 ? '#F97316' : '#F5EFE8' }}>
-                    {formatCount(votes)}
+                    {formatCount(upvotes)}
                   </span>
                 </button>
                 <div className="w-px h-5 bg-[#3D3228]" />
                 <button onClick={() => handleVote(-1)}
-                  className="px-3 py-1.5 transition-all hover:bg-[rgba(239,68,68,.12)]">
+                  className="flex items-center gap-1.5 px-3 py-1.5 transition-all hover:bg-[rgba(239,68,68,.12)]">
                   <span style={{ color: voteState === -1 ? '#EF4444' : '#6B5A4A' }}>▼</span>
+                  <span className="text-xs font-bold" style={{ color: voteState === -1 ? '#EF4444' : '#F5EFE8' }}>
+                    {formatCount(downvotes)}
+                  </span>
                 </button>
               </div>
               <span className="text-xs text-[#6B5A4A]">💬 {formatCount(post.commentCount)} comments</span>

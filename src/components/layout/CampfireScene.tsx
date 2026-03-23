@@ -1,32 +1,78 @@
 'use client'
 
+import { useEffect, useState } from 'react'
+
 const STARS = [
-  { top: '3%',  left: '8%',  size: 2.5, dur: 3.2, delay: 0   },
-  { top: '6%',  left: '22%', size: 2,   dur: 4.1, delay: 0.5 },
-  { top: '2%',  left: '38%', size: 3,   dur: 2.8, delay: 1   },
-  { top: '8%',  left: '55%', size: 2,   dur: 3.6, delay: 0.3 },
-  { top: '4%',  left: '70%', size: 2.5, dur: 5,   delay: 0.8 },
-  { top: '10%', left: '82%', size: 2,   dur: 3.9, delay: 1.4 },
-  { top: '2%',  left: '91%', size: 3,   dur: 2.5, delay: 0.2 },
-  { top: '13%', left: '14%', size: 2,   dur: 4.4, delay: 0.7 },
-  { top: '5%',  left: '46%', size: 2,   dur: 3.1, delay: 1.9 },
+  { top: '3%', left: '8%', size: 2.5, dur: 3.2, delay: 0 },
+  { top: '6%', left: '22%', size: 2, dur: 4.1, delay: 0.5 },
+  { top: '2%', left: '38%', size: 3, dur: 2.8, delay: 1 },
+  { top: '8%', left: '55%', size: 2, dur: 3.6, delay: 0.3 },
+  { top: '4%', left: '70%', size: 2.5, dur: 5, delay: 0.8 },
+  { top: '10%', left: '82%', size: 2, dur: 3.9, delay: 1.4 },
+  { top: '2%', left: '91%', size: 3, dur: 2.5, delay: 0.2 },
+  { top: '13%', left: '14%', size: 2, dur: 4.4, delay: 0.7 },
+  { top: '5%', left: '46%', size: 2, dur: 3.1, delay: 1.9 },
   { top: '11%', left: '62%', size: 2.5, dur: 4.7, delay: 1.1 },
-  { top: '7%',  left: '76%', size: 2,   dur: 2.9, delay: 2.2 },
-  { top: '15%', left: '30%', size: 2,   dur: 5.2, delay: 0.4 },
-  { top: '1%',  left: '60%', size: 3,   dur: 3.5, delay: 0.6 },
-  { top: '9%',  left: '5%',  size: 2,   dur: 4.8, delay: 1.7 },
-  { top: '4%',  left: '85%', size: 2.5, dur: 3.3, delay: 0.9 },
+  { top: '7%', left: '76%', size: 2, dur: 2.9, delay: 2.2 },
+  { top: '15%', left: '30%', size: 2, dur: 5.2, delay: 0.4 },
+  { top: '1%', left: '60%', size: 3, dur: 3.5, delay: 0.6 },
+  { top: '9%', left: '5%', size: 2, dur: 4.8, delay: 1.7 },
+  { top: '4%', left: '85%', size: 2.5, dur: 3.3, delay: 0.9 },
 ]
 
 const EMBERS = [
-  { bottom: '30px', ex: '-10px', ey: '-40px', dur: 1.8, delay: 0,   color: '#FCD34D' },
-  { bottom: '26px', ex: '8px',   ey: '-34px', dur: 2.2, delay: 0.4, color: '#F97316' },
-  { bottom: '32px', ex: '-5px',  ey: '-48px', dur: 2.6, delay: 0.9, color: '#FCD34D' },
-  { bottom: '24px', ex: '12px',  ey: '-38px', dur: 1.6, delay: 1.3, color: '#EF4444' },
-  { bottom: '28px', ex: '-14px', ey: '-30px', dur: 2,   delay: 0.6, color: '#FCD34D' },
+  { bottom: '30px', ex: '-10px', ey: '-40px', dur: 1.8, delay: 0, color: '#FCD34D' },
+  { bottom: '26px', ex: '8px', ey: '-34px', dur: 2.2, delay: 0.4, color: '#F97316' },
+  { bottom: '32px', ex: '-5px', ey: '-48px', dur: 2.6, delay: 0.9, color: '#FCD34D' },
+  { bottom: '24px', ex: '12px', ey: '-38px', dur: 1.6, delay: 1.3, color: '#EF4444' },
+  { bottom: '28px', ex: '-14px', ey: '-30px', dur: 2, delay: 0.6, color: '#FCD34D' },
 ]
 
 export default function CampfireScene() {
+  const [liteMode, setLiteMode] = useState(false)
+
+  useEffect(() => {
+    const mobileMq = window.matchMedia('(max-width: 768px)')
+    const reducedMq = window.matchMedia('(prefers-reduced-motion: reduce)')
+
+    const updateMode = () => {
+      setLiteMode(mobileMq.matches || reducedMq.matches)
+    }
+
+    updateMode()
+
+    mobileMq.addEventListener('change', updateMode)
+    reducedMq.addEventListener('change', updateMode)
+
+    return () => {
+      mobileMq.removeEventListener('change', updateMode)
+      reducedMq.removeEventListener('change', updateMode)
+    }
+  }, [])
+
+  if (liteMode) {
+    return (
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div
+          className="absolute inset-0"
+          style={{ background: 'radial-gradient(ellipse 120% 80% at 50% 0%,#050304 0%,#0A0704 40%,#0D0B06 70%,#110D08 100%)' }}
+        />
+        <div
+          className="absolute rounded-full"
+          style={{ top: '7%', right: '17%', width: 34, height: 34, background: '#FEFCE8', boxShadow: '0 0 18px rgba(254,249,195,.45)' }}
+        />
+        <div
+          className="absolute bottom-0 left-0 right-0"
+          style={{ height: '26%', background: 'linear-gradient(to top,#0A0804 0%,#0E0C08 60%,#12100A 100%)' }}
+        />
+        <div
+          className="absolute"
+          style={{ bottom: '15%', left: '50%', transform: 'translateX(-50%)', width: 52, height: 52, borderRadius: '50%', background: 'radial-gradient(circle at 50% 75%, rgba(249,115,22,.42) 0%, rgba(180,83,9,.22) 45%, transparent 75%)' }}
+        />
+      </div>
+    )
+  }
+
   return (
     <div className="absolute inset-0 overflow-hidden pointer-events-none">
       {/* Sky */}
@@ -36,9 +82,11 @@ export default function CampfireScene() {
       {/* Stars */}
       {STARS.map((s, i) => (
         <div key={i} className="absolute rounded-full bg-white animate-twinkle"
-          style={{ top: s.top, left: s.left, width: s.size, height: s.size,
+          style={{
+            top: s.top, left: s.left, width: s.size, height: s.size,
             boxShadow: `0 0 ${s.size * 2}px white`,
-            animationDuration: `${s.dur}s`, animationDelay: `${s.delay}s` }} />
+            animationDuration: `${s.dur}s`, animationDelay: `${s.delay}s`
+          }} />
       ))}
 
       {/* Moon */}
@@ -52,9 +100,9 @@ export default function CampfireScene() {
       <svg className="absolute bottom-0 left-0 w-full h-full" viewBox="0 0 900 660" preserveAspectRatio="none">
         <defs>
           <radialGradient id="firelight" cx="50%" cy="72%" r="28%">
-            <stop offset="0%"   stopColor="#B45309" stopOpacity="0.45" />
-            <stop offset="40%"  stopColor="#92400E" stopOpacity="0.2"  />
-            <stop offset="100%" stopColor="#000000" stopOpacity="0"    />
+            <stop offset="0%" stopColor="#B45309" stopOpacity="0.45" />
+            <stop offset="40%" stopColor="#92400E" stopOpacity="0.2" />
+            <stop offset="100%" stopColor="#000000" stopOpacity="0" />
           </radialGradient>
         </defs>
 
@@ -85,10 +133,10 @@ export default function CampfireScene() {
         </g>
 
         <rect x="0" y="500" width="900" height="160" fill="#080604" />
-        <rect x="0" y="500" width="900" height="30"  fill="#0A0805" />
-        <rect x="0" y="0"   width="900" height="660" fill="url(#firelight)" />
+        <rect x="0" y="500" width="900" height="30" fill="#0A0805" />
+        <rect x="0" y="0" width="900" height="660" fill="url(#firelight)" />
         <ellipse cx="450" cy="520" rx="120" ry="22" fill="#0D0A06" opacity="0.8" />
-        <ellipse cx="450" cy="516" rx="80"  ry="14" fill="#110D08" opacity="0.6" />
+        <ellipse cx="450" cy="516" rx="80" ry="14" fill="#110D08" opacity="0.6" />
       </svg>
 
       {/* Ground */}
@@ -97,59 +145,61 @@ export default function CampfireScene() {
 
       {/* Ground glow */}
       <div className="absolute animate-glow"
-        style={{ bottom: '14%', left: '30%', right: '30%', height: '14%',
-          background: 'radial-gradient(ellipse 100% 80% at 50% 100%,rgba(180,83,9,.35) 0%,rgba(120,53,15,.15) 55%,transparent 80%)' }} />
+        style={{
+          bottom: '14%', left: '30%', right: '30%', height: '14%',
+          background: 'radial-gradient(ellipse 100% 80% at 50% 100%,rgba(180,83,9,.35) 0%,rgba(120,53,15,.15) 55%,transparent 80%)'
+        }} />
 
       {/* Campfire */}
       <div className="absolute" style={{ bottom: '17%', left: '50%', transform: 'translateX(-50%)' }}>
 
         {/* Stones */}
         <div className="absolute" style={{ bottom: -3, left: '50%', transform: 'translateX(-50%)' }}>
-          {[{w:8,h:5,l:-16,b:0},{w:7,h:4,l:-9,b:-1},{w:8,h:5,l:0,b:-2},{w:7,h:4,l:8,b:-1},{w:6,h:4,l:14,b:1}].map((s,i) => (
-            <div key={i} className="absolute rounded-full" style={{ width:s.w, height:s.h, left:s.l, bottom:s.b, background:'#1C1410' }} />
+          {[{ w: 8, h: 5, l: -16, b: 0 }, { w: 7, h: 4, l: -9, b: -1 }, { w: 8, h: 5, l: 0, b: -2 }, { w: 7, h: 4, l: 8, b: -1 }, { w: 6, h: 4, l: 14, b: 1 }].map((s, i) => (
+            <div key={i} className="absolute rounded-full" style={{ width: s.w, height: s.h, left: s.l, bottom: s.b, background: '#1C1410' }} />
           ))}
         </div>
 
         {/* Logs */}
-        <div className="absolute" style={{ bottom:0, left:'50%', transform:'translateX(-50%)' }}>
-          <div className="absolute rounded" style={{ width:34,height:7,background:'#3B1F0A',transform:'rotate(-28deg)',left:-8,bottom:2 }} />
-          <div className="absolute rounded" style={{ width:34,height:7,background:'#3B1F0A',transform:'rotate(28deg)',left:4,bottom:2 }} />
-          <div className="absolute rounded" style={{ width:24,height:6,background:'#2D1608',left:-4,bottom:5 }} />
+        <div className="absolute" style={{ bottom: 0, left: '50%', transform: 'translateX(-50%)' }}>
+          <div className="absolute rounded" style={{ width: 34, height: 7, background: '#3B1F0A', transform: 'rotate(-28deg)', left: -8, bottom: 2 }} />
+          <div className="absolute rounded" style={{ width: 34, height: 7, background: '#3B1F0A', transform: 'rotate(28deg)', left: 4, bottom: 2 }} />
+          <div className="absolute rounded" style={{ width: 24, height: 6, background: '#2D1608', left: -4, bottom: 5 }} />
         </div>
 
         {/* Flames */}
-        <div className="absolute" style={{ bottom:8, left:'50%', transform:'translateX(-50%)', transformOrigin:'bottom center' }}>
-          <div className="animate-flicker" style={{ width:38,height:54,background:'radial-gradient(ellipse 50% 80% at 50% 100%,#92400E 0%,#B45309 28%,#D97706 52%,#F59E0B 72%,transparent 100%)',borderRadius:'50% 50% 44% 44%' }} />
-          <div className="absolute animate-flicker2" style={{ bottom:0,left:'50%',transform:'translateX(-50%)',width:26,height:40,background:'radial-gradient(ellipse 50% 80% at 50% 100%,#DC2626 0%,#EA580C 28%,#F97316 52%,#FB923C 72%,transparent 100%)',borderRadius:'50% 50% 44% 44%' }} />
-          <div className="absolute animate-flicker3" style={{ bottom:0,left:'50%',transform:'translateX(-50%)',width:15,height:28,background:'radial-gradient(ellipse 50% 80% at 50% 100%,#FEF08A 0%,#FDE047 38%,#FBBF24 68%,transparent 100%)',borderRadius:'50% 50% 44% 44%' }} />
-          <div className="absolute" style={{ bottom:2,left:'50%',transform:'translateX(-50%)',width:7,height:11,background:'white',borderRadius:'50% 50% 44% 44%',opacity:.75 }} />
+        <div className="absolute" style={{ bottom: 8, left: '50%', transform: 'translateX(-50%)', transformOrigin: 'bottom center' }}>
+          <div className="animate-flicker" style={{ width: 38, height: 54, background: 'radial-gradient(ellipse 50% 80% at 50% 100%,#92400E 0%,#B45309 28%,#D97706 52%,#F59E0B 72%,transparent 100%)', borderRadius: '50% 50% 44% 44%' }} />
+          <div className="absolute animate-flicker2" style={{ bottom: 0, left: '50%', transform: 'translateX(-50%)', width: 26, height: 40, background: 'radial-gradient(ellipse 50% 80% at 50% 100%,#DC2626 0%,#EA580C 28%,#F97316 52%,#FB923C 72%,transparent 100%)', borderRadius: '50% 50% 44% 44%' }} />
+          <div className="absolute animate-flicker3" style={{ bottom: 0, left: '50%', transform: 'translateX(-50%)', width: 15, height: 28, background: 'radial-gradient(ellipse 50% 80% at 50% 100%,#FEF08A 0%,#FDE047 38%,#FBBF24 68%,transparent 100%)', borderRadius: '50% 50% 44% 44%' }} />
+          <div className="absolute" style={{ bottom: 2, left: '50%', transform: 'translateX(-50%)', width: 7, height: 11, background: 'white', borderRadius: '50% 50% 44% 44%', opacity: .75 }} />
         </div>
 
         {/* Fire glow */}
-        <div className="absolute animate-glow" style={{ bottom:-6,left:'50%',transform:'translateX(-50%)',width:100,height:22,background:'radial-gradient(ellipse 80% 60% at 50% 100%,rgba(251,146,60,.45) 0%,transparent 80%)' }} />
+        <div className="absolute animate-glow" style={{ bottom: -6, left: '50%', transform: 'translateX(-50%)', width: 100, height: 22, background: 'radial-gradient(ellipse 80% 60% at 50% 100%,rgba(251,146,60,.45) 0%,transparent 80%)' }} />
 
         {/* Smoke */}
-        {[{w:16,b:58,ml:-8,dur:'3s',del:'0s'},{w:12,b:50,ml:-2,dur:'3.8s',del:'0.8s'},{w:9,b:44,ml:-10,dur:'4.2s',del:'1.5s'}].map((s,i) => (
+        {[{ w: 16, b: 58, ml: -8, dur: '3s', del: '0s' }, { w: 12, b: 50, ml: -2, dur: '3.8s', del: '0.8s' }, { w: 9, b: 44, ml: -10, dur: '4.2s', del: '1.5s' }].map((s, i) => (
           <div key={i} className="absolute rounded-full animate-smoke"
-            style={{ width:s.w,height:s.w,left:'50%',bottom:s.b,marginLeft:s.ml,background:'rgba(180,170,160,.13)',animationDuration:s.dur,animationDelay:s.del }} />
+            style={{ width: s.w, height: s.w, left: '50%', bottom: s.b, marginLeft: s.ml, background: 'rgba(180,170,160,.13)', animationDuration: s.dur, animationDelay: s.del }} />
         ))}
 
         {/* Embers */}
         {EMBERS.map((e, i) => (
           <div key={i} className="absolute rounded-full animate-ember"
-            style={{ width:2,height:2,left:'50%',bottom:e.bottom,background:e.color,animationDuration:`${e.dur}s`,animationDelay:`${e.delay}s` }} />
+            style={{ width: 2, height: 2, left: '50%', bottom: e.bottom, background: e.color, animationDuration: `${e.dur}s`, animationDelay: `${e.delay}s` }} />
         ))}
       </div>
 
       {/* Silhouettes */}
-      <svg className="absolute" style={{ bottom:'13.5%',left:'50%',transform:'translateX(-50%)',width:150,height:36 }} viewBox="0 0 150 36">
-        <ellipse cx="32"  cy="34" rx="14" ry="5" fill="#050402" />
-        <circle  cx="32"  cy="24" r="7"          fill="#060503" />
-        <rect    x="22"   y="28"  width="20" height="8" rx="3"  fill="#060503" />
+      <svg className="absolute" style={{ bottom: '13.5%', left: '50%', transform: 'translateX(-50%)', width: 150, height: 36 }} viewBox="0 0 150 36">
+        <ellipse cx="32" cy="34" rx="14" ry="5" fill="#050402" />
+        <circle cx="32" cy="24" r="7" fill="#060503" />
+        <rect x="22" y="28" width="20" height="8" rx="3" fill="#060503" />
         <ellipse cx="118" cy="34" rx="14" ry="5" fill="#050402" />
-        <circle  cx="118" cy="24" r="7"          fill="#060503" />
-        <rect    x="108"  y="28"  width="20" height="8" rx="3"  fill="#060503" />
+        <circle cx="118" cy="24" r="7" fill="#060503" />
+        <rect x="108" y="28" width="20" height="8" rx="3" fill="#060503" />
       </svg>
     </div>
   )
-            }
+}

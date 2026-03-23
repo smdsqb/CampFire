@@ -271,3 +271,28 @@ a {
 .glass-feed {
   background: rgba(8, 6, 4, .55);
 }
+
+@media (max-width: 768px) {
+
+  .glass,
+  .glass-light,
+  .glass-dark {
+    backdrop-filter: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+
+  .animate-flicker,
+  .animate-flicker2,
+  .animate-flicker3,
+  .animate-smoke,
+  .animate-ember,
+  .animate-sway,
+  .animate-sway2,
+  .animate-twinkle,
+  .animate-moon,
+  .animate-glow {
+    animation: none !important;
+  }
+}
