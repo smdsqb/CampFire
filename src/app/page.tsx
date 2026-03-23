@@ -30,7 +30,7 @@ export default function HomePage() {
   return (
     <div className="relative w-full min-h-dvh overflow-hidden">
       <CampfireScene />
-      <div className="relative z-10 flex h-full flex-col pb-14 md:flex-row md:pb-0">
+      <div className="relative z-10 flex h-full flex-col pb-[calc(4rem+env(safe-area-inset-bottom))] md:flex-row md:pb-0">
         <Sidebar active={navActive} onNav={setNavActive} />
         <CampList camps={camps} activeCamp={activeCamp} onSelect={setActiveCamp} onlineCount={onlineCount} />
         <Feed campId={activeCampObj?.id ?? null} campName={activeCamp} />
@@ -38,7 +38,7 @@ export default function HomePage() {
           <RightPanel trending={trending} onOnlineCount={setOnlineCount} />
         </div>
       </div>
-      <a href="/privacy" className="fixed bottom-3 right-3 text-[10px] text-[#6B5A4A] hover:text-[#F97316] z-50">
+      <a href="/privacy" className="fixed right-3 bottom-[calc(4.75rem+env(safe-area-inset-bottom))] md:bottom-3 text-[10px] text-[#6B5A4A] hover:text-[#F97316] z-50">
         Privacy Policy
       </a>
     </div>

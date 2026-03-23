@@ -19,7 +19,7 @@ export default function Sidebar({ active, onNav }: Props) {
   const router = useRouter()
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-40 flex h-14 items-center justify-around border-t border-[#2E2820] px-2 md:relative md:left-auto md:right-auto md:bottom-auto md:h-auto md:w-[62px] md:flex-col md:justify-start md:py-3 md:gap-2 md:border-t-0 md:border-r md:px-0 md:flex-shrink-0"
+    <div className="fixed bottom-0 left-0 right-0 z-40 flex h-[calc(3.5rem+env(safe-area-inset-bottom))] items-center justify-around border-t border-[#2E2820] px-2 pb-[env(safe-area-inset-bottom)] md:relative md:left-auto md:right-auto md:bottom-auto md:h-auto md:w-[62px] md:flex-col md:justify-start md:py-3 md:gap-2 md:border-t-0 md:border-r md:px-0 md:pb-0 md:flex-shrink-0"
       style={{ background: 'rgba(10,8,5,.92)', backdropFilter: 'blur(16px)' }}>
 
       <div
@@ -34,7 +34,7 @@ export default function Sidebar({ active, onNav }: Props) {
           key={label}
           onClick={() => { onNav(label); router.push(path) }}
           title={label}
-          className="h-9 w-9 rounded-xl flex items-center justify-center transition-all md:w-[42px] md:h-[42px]"
+          className="h-11 w-11 rounded-xl flex items-center justify-center transition-all md:w-[42px] md:h-[42px]"
           style={{
             background: active === label ? 'rgba(249,115,22,.15)' : 'transparent',
             color: active === label ? '#F97316' : '#6B5A4A',
@@ -49,7 +49,7 @@ export default function Sidebar({ active, onNav }: Props) {
       <button
         title="Settings"
         onClick={() => router.push('/settings')}
-        className="h-9 w-9 rounded-xl flex items-center justify-center transition-all md:w-[42px] md:h-[42px]"
+        className="h-11 w-11 rounded-xl flex items-center justify-center transition-all md:w-[42px] md:h-[42px]"
         style={{ color: '#6B5A4A' }}
       >
         <Settings size={18} />
@@ -60,7 +60,7 @@ export default function Sidebar({ active, onNav }: Props) {
           <button
             onClick={() => router.push(`/profile/${user.uid}`)}
             title="View profile"
-            className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-semibold text-white overflow-hidden md:w-[36px] md:h-[36px]"
+            className="w-11 h-11 rounded-full flex items-center justify-center text-xs font-semibold text-white overflow-hidden md:w-[36px] md:h-[36px]"
             style={{ background: 'linear-gradient(135deg,#EA580C,#FBBF24)' }}
           >
             {user.photoURL
@@ -72,7 +72,7 @@ export default function Sidebar({ active, onNav }: Props) {
           <button
             onClick={signInWithGoogle}
             title="Sign in"
-            className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-semibold text-white md:w-[36px] md:h-[36px]"
+            className="w-11 h-11 rounded-full flex items-center justify-center text-xs font-semibold text-white md:w-[36px] md:h-[36px]"
             style={{ background: 'linear-gradient(135deg,#EA580C,#FBBF24)' }}
           >
             ?

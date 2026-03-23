@@ -33,7 +33,7 @@ export default function Feed({ campId, campName }: Props) {
       <div className="glass-dark border-b border-[#2E2820] px-2 md:px-4 flex items-center gap-1 flex-shrink-0 overflow-x-auto">
         {SORT_TABS.map(tab => (
           <button key={tab.key} onClick={() => setSort(tab.key)}
-            className="flex items-center gap-1.5 px-2.5 py-2.5 text-xs md:text-sm font-medium border-b-2 transition-all whitespace-nowrap"
+            className="flex h-11 items-center gap-1.5 px-2.5 text-xs md:text-sm font-medium border-b-2 transition-all whitespace-nowrap"
             style={{ color: sort === tab.key ? '#F97316' : '#6B5A4A', borderColor: sort === tab.key ? '#F97316' : 'transparent' }}>
             {tab.icon} {tab.label}
           </button>
@@ -45,7 +45,7 @@ export default function Feed({ campId, campName }: Props) {
           </div>
           {user && (
             <button onClick={() => setShowModal(true)}
-              className="flex items-center gap-1 rounded-full px-2.5 md:px-3 py-1.5 text-xs font-semibold text-white whitespace-nowrap"
+              className="flex h-11 items-center gap-1 rounded-full px-2.5 md:px-3 text-xs font-semibold text-white whitespace-nowrap"
               style={{ background: 'linear-gradient(135deg,#EA580C,#F97316)', boxShadow: '0 0 14px rgba(249,115,22,.3)' }}>
               <Plus size={13} /> <span className="hidden sm:inline">New Post</span>
             </button>
@@ -64,12 +64,12 @@ export default function Feed({ campId, campName }: Props) {
         <div className="w-8 h-8 rounded-full flex items-center justify-center text-sm border border-[#3D3228]"
           style={{ background: 'rgba(255,255,255,.05)' }}>🔥</div>
         <button onClick={() => user ? setShowModal(true) : undefined}
-          className="flex-1 rounded-full px-4 py-2 text-sm text-left border border-[#3D3228] text-[#6B5A4A]"
+          className="flex-1 min-h-11 rounded-full px-4 py-2 text-sm text-left border border-[#3D3228] text-[#6B5A4A]"
           style={{ background: 'rgba(255,255,255,.05)' }}>
           Share something with the community...
         </button>
         <button onClick={() => user ? setShowModal(true) : undefined}
-          className="w-9 h-9 rounded-full flex items-center justify-center text-white text-base"
+          className="w-11 h-11 rounded-full flex items-center justify-center text-white text-base"
           style={{ background: 'linear-gradient(135deg,#EA580C,#F97316)' }}>
           ↑
         </button>
