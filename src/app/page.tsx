@@ -51,7 +51,13 @@ export default function HomePage() {
       <div className="relative z-10 safe-top flex h-full flex-col pb-[calc(4rem+env(safe-area-inset-bottom))] md:flex-row md:pb-0">
         <Sidebar active={navActive} onNav={setNavActive} />
         <CampList camps={camps} activeCamp={activeCamp} onSelect={setActiveCamp} onlineCount={onlineCount} />
-        <Feed campId={activeCampObj?.id ?? null} campName={activeCamp} />
+        <Feed
+          campId={activeCampObj?.id ?? null}
+          campName={activeCamp}
+          camps={camps}
+          activeCamp={activeCamp}
+          onCampSelect={setActiveCamp}
+        />
         <div className="hidden lg:block">
           {isDesktop && <RightPanel trending={trending} onOnlineCount={setOnlineCount} />}
         </div>

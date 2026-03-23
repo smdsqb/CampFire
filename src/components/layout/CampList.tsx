@@ -18,89 +18,54 @@ export default function CampList({ camps, activeCamp, onSelect, onlineCount }: P
     : SEED_CAMPS.map((c, i) => ({ ...c, id: String(i), createdAt: new Date(), createdBy: '' }))
 
   return (
-    <>
-      <div className="md:hidden border-b border-[#2E2820] px-2 py-2 glass">
-        <div className="flex items-center gap-2 overflow-x-auto touch-scroll">
-          <Chip
-            label="🌍 Home"
-            active={activeCamp === null}
-            onClick={() => onSelect(null)}
+    <div className="hidden md:flex flex-col w-[200px] border-r border-[#2E2820] overflow-hidden flex-shrink-0 glass">
+
+      <div className="px-3 pt-4 pb-3 border-b border-[#2E2820]">
+        <div className="font-serif text-base font-semibold text-[#F5EFE8]">🔥 CampFire</div>
+        <div className="text-[11px] text-[#6B5A4A] mt-1 flex items-center gap-1">
+          <span className="inline-block w-[6px] h-[6px] rounded-full bg-green-500" style={{ boxShadow: '0 0 6px #22C55E' }} />
+          {onlineCount.toLocaleString()} online
+        </div>
+      </div>
+
+      <div className="mx-2 mt-2 flex items-center gap-2 rounded-full px-3 py-2 text-xs text-[#6B5A4A] border border-[#2E2820]"
+        style={{ background: 'rgba(255,255,255,.04)' }}>
+        <Search size={12} />
+        <span>Search camps...</span>
+      </div>
+
+      <div className="px-3 pt-3 pb-1 text-[10px] font-semibold tracking-widest text-[#6B5A4A] uppercase">My Camps</div>
+
+      <div className="flex-1 overflow-y-auto touch-scroll">
+        <CampItem name="Home Feed" icon="🌍" color="rgba(249,115,22,.15)" active={activeCamp === null} onClick={() => onSelect(null)} />
+
+        {list.slice(0, 7).map(camp => (
+          <CampItem
+            key={camp.id}
+            name={camp.displayName}
+            icon={camp.icon}
+            color={camp.color}
+            members={camp.memberCount}
+            active={activeCamp === camp.name}
+            onClick={() => onSelect(camp.name)}
           />
-          {list.map(camp => (
-            <Chip
-              key={camp.id}
-              label={`${camp.icon} c/${camp.name}`}
-              active={activeCamp === camp.name}
-              onClick={() => onSelect(camp.name)}
-            />
-          ))}
-        </div>
+        ))}
+
+        <div className="px-3 pt-3 pb-1 text-[10px] font-semibold tracking-widest text-[#6B5A4A] uppercase">Explore</div>
+
+        {list.slice(7).map(camp => (
+          <CampItem
+            key={camp.id}
+            name={camp.displayName}
+            icon={camp.icon}
+            color={camp.color}
+            active={activeCamp === camp.name}
+            onClick={() => onSelect(camp.name)}
+          />
+        ))}
       </div>
+    </div>
 
-      <div className="hidden md:flex flex-col w-[200px] border-r border-[#2E2820] overflow-hidden flex-shrink-0 glass">
-
-        <div className="px-3 pt-4 pb-3 border-b border-[#2E2820]">
-          <div className="font-serif text-base font-semibold text-[#F5EFE8]">🔥 CampFire</div>
-          <div className="text-[11px] text-[#6B5A4A] mt-1 flex items-center gap-1">
-            <span className="inline-block w-[6px] h-[6px] rounded-full bg-green-500" style={{ boxShadow: '0 0 6px #22C55E' }} />
-            {onlineCount.toLocaleString()} online
-          </div>
-        </div>
-
-        <div className="mx-2 mt-2 flex items-center gap-2 rounded-full px-3 py-2 text-xs text-[#6B5A4A] border border-[#2E2820]"
-          style={{ background: 'rgba(255,255,255,.04)' }}>
-          <Search size={12} />
-          <span>Search camps...</span>
-        </div>
-
-        <div className="px-3 pt-3 pb-1 text-[10px] font-semibold tracking-widest text-[#6B5A4A] uppercase">My Camps</div>
-
-        <div className="flex-1 overflow-y-auto touch-scroll">
-          <CampItem name="Home Feed" icon="🌍" color="rgba(249,115,22,.15)" active={activeCamp === null} onClick={() => onSelect(null)} />
-
-          {list.slice(0, 7).map(camp => (
-            <CampItem
-              key={camp.id}
-              name={camp.displayName}
-              icon={camp.icon}
-              color={camp.color}
-              members={camp.memberCount}
-              active={activeCamp === camp.name}
-              onClick={() => onSelect(camp.name)}
-            />
-          ))}
-
-          <div className="px-3 pt-3 pb-1 text-[10px] font-semibold tracking-widest text-[#6B5A4A] uppercase">Explore</div>
-
-          {list.slice(7).map(camp => (
-            <CampItem
-              key={camp.id}
-              name={camp.displayName}
-              icon={camp.icon}
-              color={camp.color}
-              active={activeCamp === camp.name}
-              onClick={() => onSelect(camp.name)}
-            />
-          ))}
-        </div>
-      </div>
-    </>
-  )
-}
-
-function Chip({ label, active, onClick }: { label: string; active: boolean; onClick: () => void }) {
-  return (
-    <button
-      onClick={onClick}
-      className="whitespace-nowrap rounded-full min-h-11 px-3 py-1.5 text-xs font-medium border transition-all"
-      style={{
-        color: active ? '#F97316' : '#F5EFE8',
-        borderColor: active ? '#F97316' : '#3D3228',
-        background: active ? 'rgba(249,115,22,.12)' : 'rgba(255,255,255,.04)',
-      }}
-    >
-      {label}
-    </button>
   )
 }
 

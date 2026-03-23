@@ -6,7 +6,8 @@ import { subscribeToPosts } from '@/lib/db'
 import { useAuth } from '@/lib/auth-context'
 import PostCard from './PostCard'
 import NewPostModal from './NewPostModal'
-import type { Post, SortMode } from '@/types'
+import { SEED_CAMPS } from '@/lib/utils'
+import type { Camp, Post, SortMode } from '@/types'
 
 const SORT_TABS: { key: SortMode; label: string; icon: React.ReactNode }[] = [
   { key: 'hot', label: 'Hot', icon: <Flame size={14} /> },
@@ -15,14 +16,24 @@ const SORT_TABS: { key: SortMode; label: string; icon: React.ReactNode }[] = [
   { key: 'rising', label: 'Rising', icon: <Rocket size={14} /> },
 ]
 
-interface Props { campId: string | null; campName: string | null }
+interface Props {
+  campId: string | null
+  campName: string | null
+  camps: Camp[]
+  activeCamp: string | null
+  onCampSelect: (campName: string | null) => void
+}
 
-export default function Feed({ campId, campName }: Props) {
+export default function Feed({ campId, campName, camps, activeCamp, onCampSelect }: Props) {
   const { user } = useAuth()
   const [posts, setPosts] = useState<Post[]>([])
   const [sort, setSort] = useState<SortMode>('hot')
   const [showModal, setShowModal] = useState(false)
   const [showSortMenu, setShowSortMenu] = useState(false)
+
+  const menuCamps = camps.length > 0
+    ? camps
+    : SEED_CAMPS.map((camp, i) => ({ ...camp, id: String(i), createdAt: new Date(), createdBy: '' }))
 
   useEffect(() => {
     const unsub = subscribeToPosts(campId, sort, setPosts)
@@ -67,9 +78,10 @@ export default function Feed({ campId, campName }: Props) {
 
         {showSortMenu && (
           <div
-            className="absolute left-2 top-[calc(100%+8px)] z-30 w-44 rounded-xl border border-[#3D3228] p-1.5 md:hidden"
+            className="absolute left-2 top-[calc(100%+8px)] z-30 w-56 rounded-xl border border-[#3D3228] p-1.5 md:hidden"
             style={{ background: 'rgba(10,8,5,.96)', backdropFilter: 'blur(12px)' }}
           >
+            <div className="px-2 py-1 text-[10px] font-semibold tracking-widest uppercase text-[#6B5A4A]">Sort</div>
             {SORT_TABS.map(tab => (
               <button
                 key={tab.key}
@@ -83,6 +95,37 @@ export default function Feed({ campId, campName }: Props) {
                 {tab.icon} {tab.label}
               </button>
             ))}
+
+            <div className="mx-1 my-1 h-px bg-[#2E2820]" />
+            <div className="px-2 py-1 text-[10px] font-semibold tracking-widest uppercase text-[#6B5A4A]">Camps</div>
+
+            <button
+              onClick={() => { onCampSelect(null); setShowSortMenu(false) }}
+              className="flex min-h-11 w-full items-center gap-2 rounded-lg px-2.5 text-xs font-medium transition-all"
+              style={{
+                color: activeCamp === null ? '#F97316' : '#A89880',
+                background: activeCamp === null ? 'rgba(249,115,22,.12)' : 'transparent',
+              }}
+            >
+              🌍 Home Feed
+            </button>
+
+            <div className="max-h-56 overflow-y-auto touch-scroll">
+              {menuCamps.map(camp => (
+                <button
+                  key={camp.id}
+                  onClick={() => { onCampSelect(camp.name); setShowSortMenu(false) }}
+                  className="flex min-h-11 w-full items-center gap-2 rounded-lg px-2.5 text-xs font-medium transition-all"
+                  style={{
+                    color: activeCamp === camp.name ? '#F97316' : '#A89880',
+                    background: activeCamp === camp.name ? 'rgba(249,115,22,.12)' : 'transparent',
+                  }}
+                >
+                  <span>{camp.icon}</span>
+                  <span className="truncate">c/{camp.name}</span>
+                </button>
+              ))}
+            </div>
           </div>
         )}
       </div>
