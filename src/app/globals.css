@@ -10,8 +10,7 @@
 
 html {
   height: 100%;
-  overflow-x: hidden;
-  overflow-y: auto;
+  overflow: hidden;
 }
 
 body {
@@ -20,8 +19,7 @@ body {
   font-family: 'Nunito', sans-serif;
   font-size: 19px;
   height: 100%;
-  overflow-x: hidden;
-  overflow-y: auto;
+  overflow: hidden;
 }
 
 button,
