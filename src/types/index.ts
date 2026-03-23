@@ -100,3 +100,34 @@ export interface ChatMessage {
 }
 
 export type SortMode = 'hot' | 'new' | 'top' | 'rising'
+
+export interface AppNotification {
+  id: string
+  userId: string
+  type: 'vote' | 'reply' | 'system'
+  title: string
+  body: string
+  postId?: string
+  commentId?: string
+  actorId?: string
+  actorName?: string
+  isRead: boolean
+  createdAt: Date
+}
+
+export interface Conversation {
+  id: string
+  members: string[]
+  memberNames: Record<string, string>
+  lastMessage: string
+  lastMessageAt?: Date
+}
+
+export interface ChatMessage {
+  id: string
+  conversationId: string
+  senderId: string
+  senderName: string
+  body: string
+  createdAt: Date
+}
