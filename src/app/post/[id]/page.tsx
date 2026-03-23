@@ -96,7 +96,7 @@ export default function PostPage() {
   }
 
   if (!post) return (
-    <div className="relative w-full min-h-dvh overflow-hidden">
+    <div className="relative w-full h-[100dvh] overflow-hidden">
       <CampfireScene />
       <div className="relative z-10 flex items-center justify-center h-full">
         <div className="text-[#F97316] text-2xl animate-pulse">🔥</div>
@@ -105,7 +105,7 @@ export default function PostPage() {
   )
 
   return (
-    <div className="relative w-full min-h-dvh overflow-hidden">
+    <div className="relative w-full h-[100dvh] overflow-hidden">
       <CampfireScene />
       <div className="relative z-10 h-full overflow-y-auto touch-scroll safe-top">
         <div className="max-w-2xl mx-auto px-4 py-6">

@@ -32,7 +32,7 @@ export default function SeedPage() {
   }
 
   return (
-    <div className="min-h-dvh touch-scroll safe-top" style={{ background: '#0D0B09', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 16 }}>
+    <div className="h-[100dvh] overflow-y-auto touch-scroll safe-top" style={{ background: '#0D0B09', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 16 }}>
       <div style={{ fontSize: 48 }}>🔥</div>
       <button disabled={loading} onClick={seed} style={{ background: '#F97316', color: 'white', border: 'none', borderRadius: 8, padding: '12px 24px', fontSize: 16, cursor: 'pointer', opacity: loading ? 0.7 : 1 }}>
         {loading ? 'Seeding...' : 'Seed Camps'}
