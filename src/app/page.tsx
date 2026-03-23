@@ -50,7 +50,7 @@ export default function HomePage() {
   return (
     <div className="relative w-full min-h-dvh md:h-dvh overflow-x-hidden">
       <CampfireScene />
-      <div className="relative z-10 safe-top flex h-full flex-col pb-[calc(4rem+env(safe-area-inset-bottom))] md:flex-row md:pb-0">
+      <div className="relative z-10 safe-top flex min-h-dvh flex-col pb-[calc(4rem+env(safe-area-inset-bottom))] md:h-full md:min-h-0 md:flex-row md:pb-0">
         <Sidebar active={navActive} onNav={setNavActive} />
         <CampList camps={camps} activeCamp={activeCamp} onSelect={setActiveCamp} onlineCount={onlineCount} />
         <Feed

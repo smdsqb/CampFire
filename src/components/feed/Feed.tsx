@@ -41,7 +41,7 @@ export default function Feed({ campId, campName, camps, activeCamp, onCampSelect
   }, [campId, sort])
 
   return (
-    <div className="flex flex-col flex-1 overflow-y-auto">
+    <div className="flex h-full min-h-0 flex-1 flex-col">
       <div className="relative glass-dark border-b border-[#2E2820] px-2 md:px-4 flex items-center gap-1 flex-shrink-0">
         <button
           onClick={() => setShowSortMenu(v => !v)}
@@ -130,7 +130,7 @@ export default function Feed({ campId, campName, camps, activeCamp, onCampSelect
         )}
       </div>
 
-      <div className="flex-1 overflow-y-auto touch-scroll px-2 md:px-3 py-3 glass-feed flex flex-col gap-2">
+      <div className="flex flex-1 min-h-0 flex-col gap-2 overflow-y-auto touch-scroll px-2 py-3 md:px-3 glass-feed">
         {posts.length === 0
           ? <EmptyState campName={campName} onPost={() => setShowModal(true)} />
           : posts.map(post => <PostCard key={post.id} post={post} />)

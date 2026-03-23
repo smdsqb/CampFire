@@ -51,7 +51,7 @@ export default function RightPanel({ trending, onOnlineCount }: Props) {
   }, [user, onOnlineCount])
 
   return (
-    <div className="w-[210px] flex-shrink-0 border-l border-[#2E2820] overflow-y-auto touch-scroll px-3 py-3 flex flex-col gap-3 glass">
+    <div className="h-full min-h-0 w-[210px] flex-shrink-0 border-l border-[#2E2820] overflow-y-auto touch-scroll px-3 py-3 flex flex-col gap-3 glass">
 
       <div className="rounded-xl p-4 text-center border border-[#F97316]/20"
         style={{ background: 'linear-gradient(160deg,rgba(28,15,4,.95),rgba(45,26,8,.95))' }}>

@@ -18,7 +18,7 @@ export default function CampList({ camps, activeCamp, onSelect, onlineCount }: P
     : SEED_CAMPS.map((c, i) => ({ ...c, id: String(i), createdAt: new Date(), createdBy: '' }))
 
   return (
-    <div className="hidden md:flex flex-col w-[200px] border-r border-[#2E2820] overflow-hidden flex-shrink-0 glass">
+    <div className="hidden md:flex h-full min-h-0 flex-col w-[200px] border-r border-[#2E2820] overflow-hidden flex-shrink-0 glass">
 
       <div className="px-3 pt-4 pb-3 border-b border-[#2E2820]">
         <div className="font-serif text-base font-semibold text-[#F5EFE8]">🔥 CampFire</div>
@@ -36,7 +36,7 @@ export default function CampList({ camps, activeCamp, onSelect, onlineCount }: P
 
       <div className="px-3 pt-3 pb-1 text-[10px] font-semibold tracking-widest text-[#6B5A4A] uppercase">My Camps</div>
 
-      <div className="flex-1 overflow-y-auto touch-scroll">
+      <div className="flex-1 min-h-0 overflow-y-auto touch-scroll">
         <CampItem name="Home Feed" icon="🌍" color="rgba(249,115,22,.15)" active={activeCamp === null} onClick={() => onSelect(null)} />
 
         {list.slice(0, 7).map(camp => (
