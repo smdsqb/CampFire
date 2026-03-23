@@ -6,6 +6,7 @@ import { ArrowLeft } from 'lucide-react'
 import { db } from '@/lib/firebase'
 import { collection, query, where, orderBy, limit, getDocs, doc, getDoc } from 'firebase/firestore'
 import { useAuth } from '@/lib/auth-context'
+import { subscribeSavedPostIds } from '@/lib/db'
 import { formatCount, timeAgo } from '@/lib/utils'
 import CampfireScene from '@/components/layout/CampfireScene'
 import type { Post } from '@/types'
@@ -16,27 +17,78 @@ export default function ProfilePage() {
   const { user } = useAuth()
   const [profile, setProfile] = useState<any>(null)
   const [posts, setPosts] = useState<Post[]>([])
-  const [tab, setTab] = useState<'posts' | 'comments'>('posts')
+  const [savedPostIds, setSavedPostIds] = useState<string[]>([])
+  const [savedPosts, setSavedPosts] = useState<Post[]>([])
+  const [tab, setTab] = useState<'posts' | 'comments' | 'saved'>('posts')
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
 
   const isOwnProfile = user?.uid === id
 
   useEffect(() => {
     async function load() {
-      const userSnap = await getDoc(doc(db, 'users', id))
-      setProfile(userSnap.data())
+      setError('')
+      try {
+        const userSnap = await getDoc(doc(db, 'users', id))
+        setProfile(userSnap.data())
 
-      const q = query(
-        collection(db, 'posts'),
-        where('authorId', '==', id),
-        orderBy('createdAt', 'desc'),
-        limit(20)
-      )
-      const postsSnap = await getDocs(q)
-      setPosts(postsSnap.docs.map(d => {
-        const data = d.data()
+        const q = query(
+          collection(db, 'posts'),
+          where('authorId', '==', id),
+          orderBy('createdAt', 'desc'),
+          limit(20)
+        )
+        const postsSnap = await getDocs(q)
+        setPosts(postsSnap.docs.map(d => {
+          const data = d.data()
+          return {
+            id: d.id,
+            title: data.title,
+            body: data.body,
+            campId: data.campId,
+            campName: data.campName,
+            campIcon: data.campIcon,
+            authorId: data.authorId,
+            authorName: data.authorName,
+            authorAvatar: data.authorAvatar,
+            upvotes: data.upvotes,
+            downvotes: data.downvotes,
+            commentCount: data.commentCount,
+            createdAt: data.createdAt?.toDate() ?? new Date(),
+            tags: data.tags ?? [],
+            awards: data.awards ?? [],
+          } as Post
+        }))
+      } catch (e: any) {
+        setError(e?.message ?? 'Failed to load profile.')
+      } finally {
+        setLoading(false)
+      }
+    }
+    load()
+  }, [id])
+
+  useEffect(() => {
+    if (!isOwnProfile || !user) {
+      setSavedPostIds([])
+      return
+    }
+    const unsub = subscribeSavedPostIds(user.uid, setSavedPostIds)
+    return () => unsub()
+  }, [isOwnProfile, user])
+
+  useEffect(() => {
+    async function loadSaved() {
+      if (!isOwnProfile || savedPostIds.length === 0) {
+        setSavedPosts([])
+        return
+      }
+      const docs = await Promise.all(savedPostIds.slice(0, 30).map(async (postId) => {
+        const snap = await getDoc(doc(db, 'posts', postId))
+        if (!snap.exists()) return null
+        const data = snap.data()
         return {
-          id: d.id,
+          id: snap.id,
           title: data.title,
           body: data.body,
           campId: data.campId,
@@ -53,10 +105,13 @@ export default function ProfilePage() {
           awards: data.awards ?? [],
         } as Post
       }))
-      setLoading(false)
+      setSavedPosts(docs.filter(Boolean) as Post[])
     }
-    load()
-  }, [id])
+    loadSaved()
+  }, [savedPostIds, isOwnProfile])
+
+  const joinedDate = profile?.joinedAt?.toDate ? profile.joinedAt.toDate() : profile?.createdAt?.toDate ? profile.createdAt.toDate() : null
+  const karma = posts.reduce((sum, p) => sum + (p.upvotes - p.downvotes), 0)
 
   if (loading) return (
     <div className="relative w-full min-h-dvh overflow-hidden">
@@ -93,7 +148,9 @@ export default function ProfilePage() {
                 <div className="font-serif text-xl font-semibold text-[#F5EFE8]">
                   {profile?.displayName ?? 'Anonymous'}
                 </div>
-                <div className="text-sm text-[#6B5A4A] mt-0.5">{posts.length} posts</div>
+                <div className="text-sm text-[#6B5A4A] mt-0.5">{posts.length} posts · {karma} karma</div>
+                {joinedDate && <div className="text-xs text-[#6B5A4A] mt-0.5">Joined {joinedDate.toLocaleDateString()}</div>}
+                {profile?.bio && <div className="text-xs text-[#A89880] mt-1 max-w-md line-clamp-2">{profile.bio}</div>}
                 {isOwnProfile && (
                   <button
                     onClick={() => router.push('/settings')}
@@ -106,8 +163,10 @@ export default function ProfilePage() {
             </div>
           </div>
 
+          {error && <p className="text-sm text-red-400 mb-3">{error}</p>}
+
           <div className="flex gap-0 border-b border-[#2E2820] mb-4">
-            {(['posts', 'comments'] as const).map(t => (
+            {(['posts', 'comments', 'saved'] as const).map(t => (
               <button key={t} onClick={() => setTab(t)}
                 className="px-4 py-2.5 text-sm font-medium border-b-2 transition-all capitalize"
                 style={{ color: tab === t ? '#F97316' : '#6B5A4A', borderColor: tab === t ? '#F97316' : 'transparent' }}>
@@ -137,6 +196,27 @@ export default function ProfilePage() {
 
           {tab === 'comments' && (
             <div className="text-center py-12 text-[#6B5A4A]">Comments coming soon 🔥</div>
+          )}
+
+          {tab === 'saved' && (
+            <div className="flex flex-col gap-3">
+              {!isOwnProfile ? (
+                <div className="text-center py-12 text-[#6B5A4A]">Saved posts are private.</div>
+              ) : savedPosts.length === 0 ? (
+                <div className="text-center py-12 text-[#6B5A4A]">No saved posts yet.</div>
+              ) : savedPosts.map(post => (
+                <button key={post.id} onClick={() => router.push(`/post/${post.id}`)}
+                  className="text-left rounded-xl border border-[#2E2820] p-4 hover:border-[#3D3228] transition-colors"
+                  style={{ background: 'rgba(18,14,10,.88)', backdropFilter: 'blur(12px)' }}>
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="text-xs text-[#6B5A4A]">{post.campIcon} c/{post.campName}</span>
+                    <span className="text-xs text-[#6B5A4A]">· {timeAgo(post.createdAt)}</span>
+                  </div>
+                  <div className="font-serif text-sm font-semibold text-[#F5EFE8] mb-1">{post.title}</div>
+                  <div className="text-xs text-[#6B5A4A]">↑ {formatCount(post.upvotes)} · 💬 {formatCount(post.commentCount)}</div>
+                </button>
+              ))}
+            </div>
           )}
         </div>
       </div>

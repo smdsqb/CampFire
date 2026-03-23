@@ -9,20 +9,20 @@ import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore'
 import { auth, googleProvider, db } from './firebase'
 
 interface AuthCtx {
-  user:             User | null
-  loading:          boolean
+  user: User | null
+  loading: boolean
   signInWithGoogle: () => Promise<void>
-  signOut:          () => Promise<void>
+  signOut: () => Promise<void>
 }
 
 const AuthContext = createContext<AuthCtx>({
   user: null, loading: true,
-  signInWithGoogle: async () => {},
-  signOut:          async () => {},
+  signInWithGoogle: async () => { },
+  signOut: async () => { },
 })
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user,    setUser]    = useState<User | null>(null)
+  const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -32,11 +32,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const userSnap = await getDoc(userRef)
         if (!userSnap.exists()) {
           await setDoc(userRef, {
-            uid:         u.uid,
+            uid: u.uid,
             displayName: u.displayName,
-            photoURL:    u.photoURL,
-            email:       u.email,
-            createdAt:   serverTimestamp(),
+            photoURL: u.photoURL,
+            email: u.email,
+            bio: '',
+            karma: 0,
+            joinedAt: serverTimestamp(),
+            createdAt: serverTimestamp(),
           })
         }
         setUser(u)

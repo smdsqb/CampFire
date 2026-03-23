@@ -16,12 +16,21 @@ export default function CampPage() {
   const router = useRouter()
   const [camp, setCamp] = useState<Camp | null>(null)
   const [posts, setPosts] = useState<Post[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
 
   useEffect(() => {
-    getDocs(query(collection(db, 'camps'), where('name', '==', name)))
-      .then(snap => { if (!snap.empty) setCamp({ id: snap.docs[0].id, ...snap.docs[0].data() } as Camp) })
+    setLoading(true)
+    setError('')
 
-    const unsub = subscribeToPosts(name, 'hot', setPosts)
+    getDocs(query(collection(db, 'camps'), where('name', '==', name)))
+      .then(snap => {
+        if (!snap.empty) setCamp({ id: snap.docs[0].id, ...snap.docs[0].data() } as Camp)
+      })
+      .catch((e: any) => setError(e?.message ?? 'Failed to load camp.'))
+      .finally(() => setLoading(false))
+
+    const unsub = subscribeToPosts(name, 'hot', (items) => setPosts(items))
     return () => unsub()
   }, [name])
 
@@ -54,7 +63,11 @@ export default function CampPage() {
           )}
 
           <div className="flex flex-col gap-3">
-            {posts.length === 0 ? (
+            {loading ? (
+              <div className="text-center py-12 text-[#F97316] animate-pulse">🔥 Loading camp...</div>
+            ) : error ? (
+              <div className="text-center py-12 text-red-400">{error}</div>
+            ) : posts.length === 0 ? (
               <div className="text-center py-12 text-[#6B5A4A]">No posts in this camp yet 🔥</div>
             ) : posts.map(post => (
               <PostCard key={post.id} post={post} />

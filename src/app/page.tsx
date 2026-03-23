@@ -1,15 +1,17 @@
 'use client'
 
+export const dynamic = 'force-dynamic'
+
 import { useEffect, useState } from 'react'
-import dynamic from 'next/dynamic'
-const CampfireScene = dynamic(() => import('@/components/layout/CampfireScene'), { ssr: false })
+import dynamicImport from 'next/dynamic'
+const CampfireScene = dynamicImport(() => import('@/components/layout/CampfireScene'), { ssr: false })
 import Sidebar from '@/components/layout/Sidebar'
 import CampList from '@/components/layout/CampList'
 import Feed from '@/components/feed/Feed'
 import { getCamps, subscribeToPosts } from '@/lib/db'
 import type { Camp, Post } from '@/types'
 
-const RightPanel = dynamic(() => import('@/components/layout/RightPanel'), { ssr: false })
+const RightPanel = dynamicImport(() => import('@/components/layout/RightPanel'), { ssr: false })
 
 export default function HomePage() {
   const [camps, setCamps] = useState<Camp[]>([])

@@ -1,10 +1,12 @@
 'use client'
 
+export const dynamic = 'force-dynamic'
+
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { ArrowLeft, Search } from 'lucide-react'
 import { db } from '@/lib/firebase'
-import { collection, getDocs, orderBy, query } from 'firebase/firestore'
+import { collection, getDocs, limit, orderBy, query, startAfter } from 'firebase/firestore'
 import { formatCount } from '@/lib/utils'
 import CampfireScene from '@/components/layout/CampfireScene'
 import type { Camp } from '@/types'
@@ -13,13 +15,50 @@ export default function DiscoverPage() {
   const router = useRouter()
   const [camps, setCamps] = useState<Camp[]>([])
   const [search, setSearch] = useState('')
+  const [loading, setLoading] = useState(true)
+  const [loadingMore, setLoadingMore] = useState(false)
+  const [error, setError] = useState('')
+  const [cursor, setCursor] = useState<any>(null)
+  const [hasMore, setHasMore] = useState(false)
+
+  async function loadInitial() {
+    setLoading(true)
+    setError('')
+    try {
+      const snap = await getDocs(query(collection(db, 'camps'), orderBy('memberCount', 'desc'), limit(16)))
+      const mapped = snap.docs.map((d: any) => ({ id: d.id, ...d.data() } as Camp))
+      setCamps(mapped)
+      setCursor(snap.docs.length > 0 ? snap.docs[snap.docs.length - 1] : null)
+      setHasMore(snap.size === 16)
+    } catch (e: any) {
+      setError(e?.message ?? 'Failed to load camps.')
+    } finally {
+      setLoading(false)
+    }
+  }
 
   useEffect(() => {
-    getDocs(query(collection(db, 'camps'), orderBy('memberCount', 'desc')))
-      .then(snap => setCamps(snap.docs.map(d => ({ id: d.id, ...d.data() } as Camp))))
+    loadInitial()
   }, [])
 
-  const filtered = camps.filter(c =>
+  async function loadMore() {
+    if (!cursor || !hasMore || loadingMore) return
+    setLoadingMore(true)
+    setError('')
+    try {
+      const snap = await getDocs(query(collection(db, 'camps'), orderBy('memberCount', 'desc'), startAfter(cursor), limit(16)))
+      const mapped = snap.docs.map((d: any) => ({ id: d.id, ...d.data() } as Camp))
+      setCamps((prev: Camp[]) => [...prev, ...mapped])
+      setCursor(snap.docs.length > 0 ? snap.docs[snap.docs.length - 1] : null)
+      setHasMore(snap.size === 16)
+    } catch (e: any) {
+      setError(e?.message ?? 'Failed to load more camps.')
+    } finally {
+      setLoadingMore(false)
+    }
+  }
+
+  const filtered = camps.filter((c: Camp) =>
     c.name.toLowerCase().includes(search.toLowerCase()) ||
     c.description.toLowerCase().includes(search.toLowerCase())
   )
@@ -43,14 +82,17 @@ export default function DiscoverPage() {
             <Search size={16} className="text-[#6B5A4A]" />
             <input
               value={search}
-              onChange={e => setSearch(e.target.value)}
+              onChange={(e: any) => setSearch(e.target.value)}
               placeholder="Search camps..."
               className="flex-1 bg-transparent text-sm text-[#F5EFE8] outline-none placeholder-[#6B5A4A]"
             />
           </div>
 
+          {loading && <div className="text-center py-10 text-[#F97316] animate-pulse">🔥 Loading camps...</div>}
+          {!loading && error && <div className="text-center py-8 text-sm text-red-400">{error}</div>}
+
           <div className="grid grid-cols-1 gap-3">
-            {filtered.map(camp => (
+            {filtered.map((camp: Camp) => (
               <button key={camp.id}
                 onClick={() => router.push(`/camp/${camp.name}`)}
                 className="flex items-center gap-4 p-4 rounded-xl border border-[#2E2820] hover:border-[#F97316]/40 transition-all text-left"
@@ -68,6 +110,19 @@ export default function DiscoverPage() {
               </button>
             ))}
           </div>
+
+          {!loading && filtered.length > 0 && hasMore && search.trim() === '' && (
+            <div className="flex justify-center pt-4">
+              <button
+                onClick={loadMore}
+                disabled={loadingMore}
+                className="px-4 py-2 rounded-xl text-sm font-semibold text-white disabled:opacity-60"
+                style={{ background: 'linear-gradient(135deg,#EA580C,#F97316)' }}
+              >
+                {loadingMore ? 'Loading...' : 'Load more'}
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </div>

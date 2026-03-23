@@ -1,24 +1,43 @@
 'use client'
 
-import { useState } from 'react'
+export const dynamic = 'force-dynamic'
+
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { ArrowLeft, LogOut, User, Bell, Shield, Palette } from 'lucide-react'
 import { useAuth } from '@/lib/auth-context'
 import { db } from '@/lib/firebase'
-import { doc, updateDoc } from 'firebase/firestore'
+import { doc, getDoc, updateDoc } from 'firebase/firestore'
 import CampfireScene from '@/components/layout/CampfireScene'
 
 export default function SettingsPage() {
   const { user, signOut } = useAuth()
   const router = useRouter()
   const [displayName, setDisplayName] = useState(user?.displayName ?? '')
+  const [bio, setBio] = useState('')
   const [saved, setSaved] = useState(false)
+  const [error, setError] = useState('')
+
+  useEffect(() => {
+    if (!user) return
+    getDoc(doc(db, 'users', user.uid)).then((snap) => {
+      if (snap.exists()) {
+        const data = snap.data() as any
+        setBio(data.bio ?? '')
+      }
+    })
+  }, [user])
 
   async function handleSave() {
     if (!user) return
-    await updateDoc(doc(db, 'users', user.uid), { displayName })
-    setSaved(true)
-    setTimeout(() => setSaved(false), 2000)
+    setError('')
+    try {
+      await updateDoc(doc(db, 'users', user.uid), { displayName, bio })
+      setSaved(true)
+      setTimeout(() => setSaved(false), 2000)
+    } catch (e: any) {
+      setError(e?.message ?? 'Failed to save profile changes.')
+    }
   }
 
   async function handleSignOut() {
@@ -62,11 +81,21 @@ export default function SettingsPage() {
               className="w-full rounded-lg px-3 py-2 text-sm text-[#F5EFE8] border border-[#3D3228] outline-none focus:border-[#F97316] transition-colors mb-3"
               style={{ background: '#262019' }}
             />
+            <label className="text-xs text-[#6B5A4A] mb-1 block">Bio</label>
+            <textarea
+              value={bio}
+              onChange={e => setBio(e.target.value)}
+              rows={3}
+              placeholder="Tell people about yourself..."
+              className="w-full rounded-lg px-3 py-2 text-sm text-[#F5EFE8] border border-[#3D3228] outline-none focus:border-[#F97316] transition-colors mb-3 resize-none"
+              style={{ background: '#262019' }}
+            />
             <button onClick={handleSave}
               className="px-4 py-2 text-sm font-semibold text-white rounded-lg"
               style={{ background: 'linear-gradient(135deg,#EA580C,#F97316)' }}>
               {saved ? '✅ Saved!' : 'Save changes'}
             </button>
+            {error && <p className="text-xs text-red-400 mt-2">{error}</p>}
           </Section>
 
           {/* Notifications */}

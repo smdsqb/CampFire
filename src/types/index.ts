@@ -3,6 +3,9 @@ export interface User {
   displayName: string | null
   email: string | null
   photoURL: string | null
+  bio?: string
+  joinedAt?: Date
+  karma?: number
   createdAt: Date
 }
 
@@ -63,6 +66,37 @@ export interface Award {
   label: string
   icon: string
   grantedBy: string
+}
+
+export interface AppNotification {
+  id: string
+  userId: string
+  type: 'vote' | 'reply' | 'system'
+  title: string
+  body: string
+  postId?: string
+  commentId?: string
+  actorId?: string
+  actorName?: string
+  isRead: boolean
+  createdAt: Date
+}
+
+export interface Conversation {
+  id: string
+  members: string[]
+  memberNames?: Record<string, string>
+  lastMessage?: string
+  lastMessageAt?: Date
+}
+
+export interface ChatMessage {
+  id: string
+  conversationId: string
+  senderId: string
+  senderName: string
+  body: string
+  createdAt: Date
 }
 
 export type SortMode = 'hot' | 'new' | 'top' | 'rising'

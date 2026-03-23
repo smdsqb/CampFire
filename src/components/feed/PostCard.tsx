@@ -4,7 +4,8 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { MessageCircle, Share2, Bookmark, Star } from 'lucide-react'
 import { formatCount, timeAgo } from '@/lib/utils'
-import { castVote } from '@/lib/db'
+import { castVote, reportPost, toggleSavePost } from '@/lib/db'
+import { trackEvent } from '@/lib/analytics'
 import { useAuth } from '@/lib/auth-context'
 import type { Post } from '@/types'
 
@@ -13,12 +14,23 @@ interface Props { post: Post }
 export default function PostCard({ post }: Props) {
   const { user } = useAuth()
   const router = useRouter()
-  const [upvotes,   setUpvotes]   = useState(post.upvotes)
+  const [upvotes, setUpvotes] = useState(post.upvotes)
   const [downvotes, setDownvotes] = useState(post.downvotes)
   const [voteState, setVoteState] = useState<1 | -1 | 0>(0)
+  const [saved, setSaved] = useState(false)
+  const [busy, setBusy] = useState(false)
+  const [error, setError] = useState('')
 
   async function handleVote(val: 1 | -1) {
-    if (!user) return
+    if (!user || busy) return
+
+    setError('')
+    setBusy(true)
+
+    const prevState = voteState
+    const prevUp = upvotes
+    const prevDown = downvotes
+
     const prev = voteState
     const next: 1 | -1 | 0 = prev === val ? 0 : val
     setVoteState(next)
@@ -35,12 +47,48 @@ export default function PostCard({ post }: Props) {
       setDownvotes(v => Math.max(0, v - 1))
       setUpvotes(v => v + 1)
     }
-    await castVote(post.id, user.uid, val)
+    try {
+      await castVote(post.id, user.uid, val)
+      trackEvent('vote_cast', { postId: post.id, value: val })
+    } catch (e: any) {
+      setVoteState(prevState)
+      setUpvotes(prevUp)
+      setDownvotes(prevDown)
+      setError(e?.message ?? 'Could not update vote.')
+    } finally {
+      setBusy(false)
+    }
   }
 
   function handleShare() {
     navigator.clipboard.writeText(`https://campfires.vercel.app/post/${post.id}`)
+    trackEvent('post_share', { postId: post.id })
     alert('Link copied! 🔥')
+  }
+
+  async function handleSave() {
+    if (!user) return
+    setError('')
+    try {
+      const next = await toggleSavePost(user.uid, post.id)
+      setSaved(next)
+      trackEvent('post_saved_toggle', { postId: post.id, saved: next })
+    } catch (e: any) {
+      setError(e?.message ?? 'Could not save post.')
+    }
+  }
+
+  async function handleReport() {
+    if (!user) return
+    const reason = window.prompt('Report reason (spam, abuse, etc):', 'spam')
+    if (!reason?.trim()) return
+    setError('')
+    try {
+      await reportPost(post.id, user.uid, reason.trim())
+      trackEvent('post_reported', { postId: post.id, reason: reason.trim() })
+    } catch (e: any) {
+      setError(e?.message ?? 'Could not submit report.')
+    }
   }
 
   const ts = (post.createdAt as any)?.seconds
@@ -137,19 +185,20 @@ export default function PostCard({ post }: Props) {
         </button>
 
         <button
-          onClick={() => alert('Save coming soon! 🔥')}
+          onClick={handleSave}
           className="flex items-center gap-1 px-2.5 py-1.5 rounded-full text-xs font-medium text-[#A89880] hover:text-[#F5EFE8] transition-all border border-[#3D3228]"
           style={{ background: 'rgba(255,255,255,.05)' }}>
-          <Bookmark size={13} />Save
+          <Bookmark size={13} />{saved ? 'Saved' : 'Save'}
         </button>
 
         <button
-          onClick={() => alert('Awards coming soon! 🔥')}
+          onClick={handleReport}
           className="flex items-center gap-1 px-2.5 py-1.5 rounded-full text-xs font-medium text-[#A89880] hover:text-[#F5EFE8] transition-all border border-[#3D3228]"
           style={{ background: 'rgba(255,255,255,.05)' }}>
-          <Star size={13} />Award
+          <Star size={13} />Report
         </button>
       </div>
+      {error && <p className="px-3 pb-2 text-[11px] text-red-400">{error}</p>}
     </div>
   )
 }

@@ -22,6 +22,7 @@ export default function PostPage() {
   const [upvotes, setUpvotes] = useState(0)
   const [downvotes, setDownvotes] = useState(0)
   const [voteState, setVoteState] = useState<1 | -1 | 0>(0)
+  const [error, setError] = useState('')
 
   useEffect(() => {
     getDoc(doc(db, 'posts', id)).then(snap => {
@@ -64,21 +65,32 @@ export default function PostPage() {
       setUpvotes(v => v + 1)
     }
 
-    await castVote(post.id, user.uid, val)
+    try {
+      await castVote(post.id, user.uid, val)
+    } catch (e: any) {
+      setVoteState(prev)
+      setError(e?.message ?? 'Could not update vote.')
+    }
   }
 
   async function handleComment() {
     if (!user || !body.trim()) return
     setLoading(true)
-    await createComment({
-      postId: id,
-      authorId: user.uid,
-      authorName: user.displayName ?? 'Anonymous',
-      authorAvatar: user.photoURL ?? undefined,
-      body: body.trim(),
-    })
-    setBody('')
-    setLoading(false)
+    setError('')
+    try {
+      await createComment({
+        postId: id,
+        authorId: user.uid,
+        authorName: user.displayName ?? 'Anonymous',
+        authorAvatar: user.photoURL ?? undefined,
+        body: body.trim(),
+      })
+      setBody('')
+    } catch (e: any) {
+      setError(e?.message ?? 'Could not add comment.')
+    } finally {
+      setLoading(false)
+    }
   }
 
   if (!post) return (
@@ -172,6 +184,8 @@ export default function PostPage() {
           )}
 
           {/* Comments */}
+          {error && <p className="text-sm text-red-400 mb-3">{error}</p>}
+
           <div className="flex flex-col gap-3">
             {comments.length === 0 ? (
               <div className="text-center py-8 text-[#6B5A4A]">No comments yet — be the first! 🔥</div>

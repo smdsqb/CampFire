@@ -1,10 +1,11 @@
 'use client'
 
+export const dynamic = 'force-dynamic'
+
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { ArrowLeft, Search } from 'lucide-react'
-import { db } from '@/lib/firebase'
-import { collection, query, orderBy, getDocs } from 'firebase/firestore'
+import { searchPostsPage } from '@/lib/db'
 import { formatCount, timeAgo } from '@/lib/utils'
 import CampfireScene from '@/components/layout/CampfireScene'
 import type { Post } from '@/types'
@@ -14,31 +15,47 @@ export default function SearchPage() {
   const [q, setQ] = useState('')
   const [results, setResults] = useState<Post[]>([])
   const [loading, setLoading] = useState(false)
+  const [loadingMore, setLoadingMore] = useState(false)
   const [searched, setSearched] = useState(false)
+  const [error, setError] = useState('')
+  const [cursor, setCursor] = useState<any>(null)
+  const [hasMore, setHasMore] = useState(false)
 
   async function handleSearch() {
     if (!q.trim()) return
     setLoading(true)
     setSearched(true)
-    const snap = await getDocs(query(collection(db, 'posts'), orderBy('createdAt', 'desc')))
-    const all = snap.docs.map(d => {
-      const data = d.data()
-      return {
-        id: d.id, title: data.title, body: data.body,
-        campId: data.campId, campName: data.campName, campIcon: data.campIcon,
-        authorId: data.authorId, authorName: data.authorName, authorAvatar: data.authorAvatar,
-        upvotes: data.upvotes, downvotes: data.downvotes, commentCount: data.commentCount,
-        createdAt: data.createdAt?.toDate() ?? new Date(),
-        tags: data.tags ?? [], awards: data.awards ?? [],
-      } as Post
-    })
-    setResults(all.filter(p =>
-      p.title.toLowerCase().includes(q.toLowerCase()) ||
-      p.body?.toLowerCase().includes(q.toLowerCase()) ||
-      p.campName.toLowerCase().includes(q.toLowerCase()) ||
-      p.tags.some(t => t.toLowerCase().includes(q.toLowerCase()))
-    ))
-    setLoading(false)
+    setError('')
+
+    try {
+      const page = await searchPostsPage({ searchTerm: q, pageSize: 20, cursor: null })
+      setResults(page.posts)
+      setCursor(page.nextCursor)
+      setHasMore(page.hasMore)
+    } catch (e: any) {
+      setError(e?.message ?? 'Search failed. Please try again.')
+      setResults([])
+      setHasMore(false)
+      setCursor(null)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  async function loadMore() {
+    if (!hasMore || !cursor || loadingMore) return
+    setLoadingMore(true)
+    setError('')
+    try {
+      const page = await searchPostsPage({ searchTerm: q, pageSize: 20, cursor })
+      setResults(prev => [...prev, ...page.posts])
+      setCursor(page.nextCursor)
+      setHasMore(page.hasMore)
+    } catch (e: any) {
+      setError(e?.message ?? 'Could not load more results.')
+    } finally {
+      setLoadingMore(false)
+    }
   }
 
   return (
@@ -75,8 +92,12 @@ export default function SearchPage() {
 
           {loading && <div className="text-center py-12 text-[#F97316] animate-pulse">🔥 Searching...</div>}
 
+          {!loading && error && (
+            <div className="text-center py-6 text-sm text-red-400">{error}</div>
+          )}
+
           {!loading && searched && results.length === 0 && (
-            <div className="text-center py-12 text-[#6B5A4A]">No results found for "{q}"</div>
+            <div className="text-center py-12 text-[#6B5A4A]">No results found for &quot;{q}&quot;</div>
           )}
 
           <div className="flex flex-col gap-3">
@@ -95,6 +116,19 @@ export default function SearchPage() {
               </button>
             ))}
           </div>
+
+          {!loading && results.length > 0 && hasMore && (
+            <div className="flex justify-center pt-4">
+              <button
+                onClick={loadMore}
+                disabled={loadingMore}
+                className="px-4 py-2 rounded-xl text-sm font-semibold text-white disabled:opacity-60"
+                style={{ background: 'linear-gradient(135deg,#EA580C,#F97316)' }}
+              >
+                {loadingMore ? 'Loading...' : 'Load more'}
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </div>
