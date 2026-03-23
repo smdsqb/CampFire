@@ -1,5 +1,7 @@
 'use client'
 
+export const dynamic = 'force-dynamic'
+
 import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { ArrowLeft } from 'lucide-react'
@@ -137,7 +139,8 @@ export default function ProfilePage() {
             style={{ background: 'rgba(18,14,10,.92)', backdropFilter: 'blur(16px)' }}>
             <div className="flex items-center gap-4">
               {profile?.photoURL ? (
-                <img src={profile.photoURL} alt="" className="w-16 h-16 rounded-full object-cover border-2 border-[#F97316]" />
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={profile.photoURL} alt="Profile" className="w-16 h-16 rounded-full object-cover border-2 border-[#F97316]" />
               ) : (
                 <div className="w-16 h-16 rounded-full flex items-center justify-center text-2xl font-bold text-white"
                   style={{ background: 'linear-gradient(135deg,#EA580C,#FBBF24)' }}>

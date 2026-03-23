@@ -62,7 +62,8 @@ export default function SettingsPage() {
           <Section icon={<User size={16} />} title="Profile">
             <div className="flex items-center gap-4 mb-4">
               {user?.photoURL ? (
-                <img src={user.photoURL} alt="" className="w-16 h-16 rounded-full border-2 border-[#F97316]" />
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={user.photoURL} alt="Profile" className="w-16 h-16 rounded-full border-2 border-[#F97316]" />
               ) : (
                 <div className="w-16 h-16 rounded-full flex items-center justify-center text-xl font-bold text-white"
                   style={{ background: 'linear-gradient(135deg,#EA580C,#FBBF24)' }}>

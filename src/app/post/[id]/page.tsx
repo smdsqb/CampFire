@@ -1,5 +1,7 @@
 'use client'
 
+export const dynamic = 'force-dynamic'
+
 import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { ArrowLeft, Send } from 'lucide-react'
@@ -194,7 +196,8 @@ export default function PostPage() {
                 style={{ background: 'rgba(18,14,10,.88)', backdropFilter: 'blur(12px)' }}>
                 <div className="flex items-center gap-2 mb-2">
                   {comment.authorAvatar ? (
-                    <img src={comment.authorAvatar} alt="" className="w-6 h-6 rounded-full" />
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={comment.authorAvatar} alt="Author" className="w-6 h-6 rounded-full" />
                   ) : (
                     <div className="w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold text-white"
                       style={{ background: 'linear-gradient(135deg,#EA580C,#FBBF24)' }}>

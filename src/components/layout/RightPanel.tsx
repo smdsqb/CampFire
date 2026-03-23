@@ -41,14 +41,14 @@ export default function RightPanel({ trending, onOnlineCount }: Props) {
     const onlineUnsub = onValue(onlineRef, (snap) => {
       const count = snap.val() ? Object.keys(snap.val()).length : 0
       setOnlineCount(count)
-      onOnlineCount(count)
+      if (onOnlineCount) onOnlineCount(count)
     })
 
     return () => {
       unsub()
       onlineUnsub()
     }
-  }, [user])
+  }, [user, onOnlineCount])
 
   return (
     <div className="w-[210px] flex-shrink-0 border-l border-[#2E2820] overflow-y-auto touch-scroll px-3 py-3 flex flex-col gap-3 glass">

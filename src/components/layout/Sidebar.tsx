@@ -63,10 +63,12 @@ export default function Sidebar({ active, onNav }: Props) {
             className="w-11 h-11 rounded-full flex items-center justify-center text-xs font-semibold text-white overflow-hidden md:w-[36px] md:h-[36px]"
             style={{ background: 'linear-gradient(135deg,#EA580C,#FBBF24)' }}
           >
-            {user.photoURL
-              ? <img src={user.photoURL} alt="" className="w-full h-full object-cover" />
-              : getInitials(user.displayName ?? null)
-            }
+            {user.photoURL ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={user.photoURL} alt="Profile" className="w-full h-full object-cover" />
+            ) : (
+              getInitials(user.displayName ?? null)
+            )}
           </button>
         ) : (
           <button
