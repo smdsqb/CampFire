@@ -41,7 +41,7 @@ export default function Feed({ campId, campName, camps, activeCamp, onCampSelect
   }, [campId, sort])
 
   return (
-    <div className="flex flex-col flex-1 overflow-hidden">
+    <div className="flex flex-col flex-1 overflow-y-auto">
       <div className="relative glass-dark border-b border-[#2E2820] px-2 md:px-4 flex items-center gap-1 flex-shrink-0">
         <button
           onClick={() => setShowSortMenu(v => !v)}
