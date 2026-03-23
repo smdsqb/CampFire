@@ -53,7 +53,7 @@ export default function Feed({ campId, campName }: Props) {
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto px-2 md:px-3 py-3 glass-feed flex flex-col gap-2">
+      <div className="flex-1 overflow-y-auto touch-scroll px-2 md:px-3 py-3 glass-feed flex flex-col gap-2">
         {posts.length === 0
           ? <EmptyState campName={campName} onPost={() => setShowModal(true)} />
           : posts.map(post => <PostCard key={post.id} post={post} />)

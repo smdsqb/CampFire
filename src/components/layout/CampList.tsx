@@ -20,7 +20,7 @@ export default function CampList({ camps, activeCamp, onSelect, onlineCount }: P
   return (
     <>
       <div className="md:hidden border-b border-[#2E2820] px-2 py-2 glass">
-        <div className="flex items-center gap-2 overflow-x-auto">
+        <div className="flex items-center gap-2 overflow-x-auto touch-scroll">
           <Chip
             label="🌍 Home"
             active={activeCamp === null}
@@ -55,7 +55,7 @@ export default function CampList({ camps, activeCamp, onSelect, onlineCount }: P
 
         <div className="px-3 pt-3 pb-1 text-[10px] font-semibold tracking-widest text-[#6B5A4A] uppercase">My Camps</div>
 
-        <div className="flex-1 overflow-y-auto">
+        <div className="flex-1 overflow-y-auto touch-scroll">
           <CampItem name="Home Feed" icon="🌍" color="rgba(249,115,22,.15)" active={activeCamp === null} onClick={() => onSelect(null)} />
 
           {list.slice(0, 7).map(camp => (
@@ -92,7 +92,7 @@ function Chip({ label, active, onClick }: { label: string; active: boolean; onCl
   return (
     <button
       onClick={onClick}
-      className="whitespace-nowrap rounded-full px-3 py-1.5 text-xs font-medium border transition-all"
+      className="whitespace-nowrap rounded-full min-h-11 px-3 py-1.5 text-xs font-medium border transition-all"
       style={{
         color: active ? '#F97316' : '#F5EFE8',
         borderColor: active ? '#F97316' : '#3D3228',

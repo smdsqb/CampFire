@@ -13,8 +13,8 @@ interface Props { trending: Post[]; onOnlineCount: (n: number) => void }
 export default function RightPanel({ trending, onOnlineCount }: Props) {
   const { user, signInWithGoogle } = useAuth()
   const [memberCount, setMemberCount] = useState(0)
-  const [campCount,   setCampCount]   = useState(0)
-  const [postCount,   setPostCount]   = useState(0)
+  const [campCount, setCampCount] = useState(0)
+  const [postCount, setPostCount] = useState(0)
   const [onlineCount, setOnlineCount] = useState(0)
 
   useEffect(() => {
@@ -51,7 +51,7 @@ export default function RightPanel({ trending, onOnlineCount }: Props) {
   }, [user])
 
   return (
-    <div className="w-[210px] flex-shrink-0 border-l border-[#2E2820] overflow-y-auto px-3 py-3 flex flex-col gap-3 glass">
+    <div className="w-[210px] flex-shrink-0 border-l border-[#2E2820] overflow-y-auto touch-scroll px-3 py-3 flex flex-col gap-3 glass">
 
       <div className="rounded-xl p-4 text-center border border-[#F97316]/20"
         style={{ background: 'linear-gradient(160deg,rgba(28,15,4,.95),rgba(45,26,8,.95))' }}>
@@ -106,10 +106,10 @@ export default function RightPanel({ trending, onOnlineCount }: Props) {
 
       <Widget title="⚡ Live Stats">
         {[
-          ['🔥 Posts',   formatCount(postCount)],
-          ['🏕️ Camps',   formatCount(campCount)],
+          ['🔥 Posts', formatCount(postCount)],
+          ['🏕️ Camps', formatCount(campCount)],
           ['👥 Members', formatCount(memberCount)],
-          ['🟢 Online',  formatCount(onlineCount)],
+          ['🟢 Online', formatCount(onlineCount)],
         ].map(([label, val]) => (
           <div key={label} className="flex items-center justify-between py-1.5">
             <span className="text-xs text-[#A89880]">{label}</span>

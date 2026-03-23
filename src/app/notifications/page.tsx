@@ -10,7 +10,7 @@ export default function NotificationsPage() {
   return (
     <div className="relative w-full min-h-dvh overflow-hidden">
       <CampfireScene />
-      <div className="relative z-10 h-full overflow-y-auto">
+      <div className="relative z-10 h-full overflow-y-auto touch-scroll safe-top">
         <div className="max-w-xl mx-auto px-4 py-6">
 
           <button onClick={() => router.back()}
