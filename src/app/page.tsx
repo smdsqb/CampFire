@@ -48,7 +48,7 @@ export default function HomePage() {
   const activeCampObj = camps.find((c) => c.name === activeCamp) ?? null
 
   return (
-    <div className="relative w-full min-h-dvh overflow-hidden">
+    <div className="relative w-full min-h-dvh md:h-dvh overflow-x-hidden">
       <CampfireScene />
       <div className="relative z-10 safe-top flex h-full flex-col pb-[calc(4rem+env(safe-area-inset-bottom))] md:flex-row md:pb-0">
         <Sidebar active={navActive} onNav={setNavActive} />
