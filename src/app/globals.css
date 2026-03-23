@@ -253,19 +253,19 @@ a {
   animation: groundglow 2s ease-in-out infinite;
 }
 
-.glass {
-  background: rgba(14, 11, 7, .92);
-  backdrop-filter: blur(16px);
+.glass { 
+  background: rgba(14,11,7,.95);
+  backdrop-filter: blur(8px); 
 }
 
-.glass-light {
-  background: rgba(18, 14, 10, .88);
-  backdrop-filter: blur(12px);
+.glass-light { 
+  background: rgba(18,14,10,.92);
+  backdrop-filter: blur(6px); 
 }
 
-.glass-dark {
-  background: rgba(10, 8, 5, .95);
-  backdrop-filter: blur(16px);
+.glass-dark { 
+  background: rgba(10,8,5,.97);   
+  backdrop-filter: blur(8px); 
 }
 
 .glass-feed {
