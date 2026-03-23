@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from 'react'
 import dynamic from 'next/dynamic'
-import CampfireScene from '@/components/layout/CampfireScene'
+import dynamic from 'next/dynamic'
+const CampfireScene = dynamic(() => import('@/components/layout/CampfireScene'), { ssr: false })
 import Sidebar from '@/components/layout/Sidebar'
 import CampList from '@/components/layout/CampList'
 import Feed from '@/components/feed/Feed'
