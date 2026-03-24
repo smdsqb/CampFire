@@ -4,7 +4,7 @@ import { createContext, useContext, useEffect, useState } from 'react'
 import {
   onAuthStateChanged, signInWithPopup, signOut as firebaseSignOut,
   createUserWithEmailAndPassword, signInWithEmailAndPassword,
-  updateProfile,
+  updateProfile, sendEmailVerification,
   type User
 } from 'firebase/auth'
 import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore'
