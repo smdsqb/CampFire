@@ -47,11 +47,11 @@ export default function LoginPage() {
     } else if (result.verify) {
       setMode('choose')
       setError('')
-      // show verification notice
       alert('✅ Account created! Check your email to verify your account before signing in.')
     } else {
       router.push('/')
     }
+  }  // ← this was missing
 
   return (
     <div className="relative w-full h-[100dvh] overflow-hidden">
@@ -89,7 +89,6 @@ export default function LoginPage() {
           {/* ── CHOOSE MODE ── */}
           {mode === 'choose' && (
             <div className="flex flex-col gap-3">
-              {/* Google */}
               <button
                 onClick={handleGoogle}
                 disabled={loading}
@@ -104,14 +103,12 @@ export default function LoginPage() {
                 Continue with Google
               </button>
 
-              {/* Divider */}
               <div className="flex items-center gap-3 my-1">
                 <div className="flex-1 h-px bg-[#2E2820]" />
                 <span className="text-[11px] text-[#6B5A4A]">or</span>
                 <div className="flex-1 h-px bg-[#2E2820]" />
               </div>
 
-              {/* Email login */}
               <button
                 onClick={() => setMode('login')}
                 className="flex items-center justify-center gap-2 w-full py-3 rounded-xl text-sm font-semibold text-white transition-all"
@@ -119,7 +116,6 @@ export default function LoginPage() {
                 <Mail size={14} /> Sign in with Email
               </button>
 
-              {/* Sign up */}
               <button
                 onClick={() => setMode('signup')}
                 className="flex items-center justify-center gap-2 w-full py-3 rounded-xl border border-[#3D3228] text-sm font-semibold text-[#F5EFE8] transition-all hover:border-[#F97316]"
