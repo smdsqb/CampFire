@@ -37,7 +37,7 @@ export default function LoginPage() {
     setLoading(true)
     setError('')
 
-    const result = mode === 'login'
+    const result: { error?: string; verify?: boolean } = mode === 'login'
       ? await signInWithEmail(email, password)
       : await signUpWithEmail(email, password, displayName)
 
