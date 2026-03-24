@@ -81,6 +81,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       const cred = await createUserWithEmailAndPassword(auth, email, password)
       await updateProfile(cred.user, { displayName })
+      await sendEmailVerification(cred.user)
       await setDoc(doc(db, 'users', cred.user.uid), {
         uid: cred.user.uid,
         displayName,
