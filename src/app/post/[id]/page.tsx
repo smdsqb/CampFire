@@ -8,11 +8,105 @@ import { ArrowLeft, Send } from 'lucide-react'
 import { db } from '@/lib/firebase'
 import { doc, getDoc } from 'firebase/firestore'
 import { subscribeToComments, createComment, castVote } from '@/lib/db'
+import { castCommentVote } from '@/lib/comments'
 import { useAuth } from '@/lib/auth-context'
 import { formatCount, timeAgo } from '@/lib/utils'
 import CampfireScene from '@/components/layout/CampfireScene'
 import type { Post, Comment } from '@/types'
 
+// ── Comment card with its own vote state ──────────────────────
+function CommentCard({ comment, user }: { comment: Comment; user: any }) {
+  const [upvotes, setUpvotes] = useState(comment.upvotes ?? 0)
+  const [downvotes, setDownvotes] = useState(comment.downvotes ?? 0)
+  const [voteState, setVoteState] = useState<1 | -1 | 0>(0)
+  const [busy, setBusy] = useState(false)
+
+  async function handleVote(val: 1 | -1) {
+    if (!user || busy) return
+    setBusy(true)
+    const prev = voteState
+    const next: 1 | -1 | 0 = prev === val ? 0 : val
+    setVoteState(next)
+
+    // Optimistic update
+    if (next === 0) {
+      if (val === 1) setUpvotes(v => Math.max(0, v - 1))
+      else setDownvotes(v => Math.max(0, v - 1))
+    } else if (prev === 0) {
+      if (val === 1) setUpvotes(v => v + 1)
+      else setDownvotes(v => v + 1)
+    } else if (prev === 1 && val === -1) {
+      setUpvotes(v => Math.max(0, v - 1))
+      setDownvotes(v => v + 1)
+    } else if (prev === -1 && val === 1) {
+      setDownvotes(v => Math.max(0, v - 1))
+      setUpvotes(v => v + 1)
+    }
+
+    try {
+      await castCommentVote(comment.postId, comment.id, user.uid, val)
+    } catch {
+      // Revert on failure
+      setVoteState(prev)
+      setUpvotes(comment.upvotes ?? 0)
+      setDownvotes(comment.downvotes ?? 0)
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  return (
+    <div className="rounded-xl border border-[#2E2820] p-4"
+      style={{ background: 'rgba(18,14,10,.88)', backdropFilter: 'blur(12px)' }}>
+      <div className="flex items-center gap-2 mb-2">
+        {comment.authorAvatar ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={comment.authorAvatar} alt="Author" className="w-6 h-6 rounded-full" />
+        ) : (
+          <div className="w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold text-white"
+            style={{ background: 'linear-gradient(135deg,#EA580C,#FBBF24)' }}>
+            {comment.authorName[0]}
+          </div>
+        )}
+        <span className="text-xs font-semibold text-[#F5EFE8]">{comment.authorName}</span>
+        <span className="text-xs text-[#6B5A4A]">· {timeAgo(comment.createdAt)}</span>
+      </div>
+
+      <p className="text-sm text-[#A89880] leading-relaxed mb-3">{comment.body}</p>
+
+      {/* Vote buttons */}
+      <div className="flex items-center gap-2">
+        <div className="flex items-center rounded-full overflow-hidden border border-[#3D3228]"
+          style={{ background: 'rgba(255,255,255,.05)' }}>
+          <button
+            onClick={() => handleVote(1)}
+            disabled={busy}
+            className="flex items-center gap-1 px-2.5 py-1 transition-all hover:bg-[rgba(249,115,22,.12)] disabled:opacity-50">
+            <span className="text-xs leading-none" style={{ color: voteState === 1 ? '#F97316' : '#6B5A4A' }}>▲</span>
+            <span className="text-xs font-bold" style={{ color: voteState === 1 ? '#F97316' : '#F5EFE8' }}>
+              {formatCount(upvotes)}
+            </span>
+          </button>
+          <div className="w-px h-4 bg-[#3D3228]" />
+          <button
+            onClick={() => handleVote(-1)}
+            disabled={busy}
+            className="flex items-center gap-1 px-2.5 py-1 transition-all hover:bg-[rgba(239,68,68,.12)] disabled:opacity-50">
+            <span className="text-xs leading-none" style={{ color: voteState === -1 ? '#EF4444' : '#6B5A4A' }}>▼</span>
+            <span className="text-xs font-bold" style={{ color: voteState === -1 ? '#EF4444' : '#F5EFE8' }}>
+              {formatCount(downvotes)}
+            </span>
+          </button>
+        </div>
+        {!user && (
+          <span className="text-[10px] text-[#6B5A4A]">Sign in to vote</span>
+        )}
+      </div>
+    </div>
+  )
+}
+
+// ── Main post page ────────────────────────────────────────────
 export default function PostPage() {
   const { id } = useParams<{ id: string }>()
   const router = useRouter()
@@ -192,25 +286,10 @@ export default function PostPage() {
             {comments.length === 0 ? (
               <div className="text-center py-8 text-[#6B5A4A]">No comments yet — be the first! 🔥</div>
             ) : comments.map(comment => (
-              <div key={comment.id} className="rounded-xl border border-[#2E2820] p-4"
-                style={{ background: 'rgba(18,14,10,.88)', backdropFilter: 'blur(12px)' }}>
-                <div className="flex items-center gap-2 mb-2">
-                  {comment.authorAvatar ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img src={comment.authorAvatar} alt="Author" className="w-6 h-6 rounded-full" />
-                  ) : (
-                    <div className="w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold text-white"
-                      style={{ background: 'linear-gradient(135deg,#EA580C,#FBBF24)' }}>
-                      {comment.authorName[0]}
-                    </div>
-                  )}
-                  <span className="text-xs font-semibold text-[#F5EFE8]">{comment.authorName}</span>
-                  <span className="text-xs text-[#6B5A4A]">· {timeAgo(comment.createdAt)}</span>
-                </div>
-                <p className="text-sm text-[#A89880] leading-relaxed">{comment.body}</p>
-              </div>
+              <CommentCard key={comment.id} comment={comment} user={user} />
             ))}
           </div>
+
         </div>
       </div>
     </div>
