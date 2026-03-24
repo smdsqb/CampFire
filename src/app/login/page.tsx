@@ -44,10 +44,14 @@ export default function LoginPage() {
     if (result.error) {
       setError(result.error)
       setLoading(false)
+    } else if (result.verify) {
+      setMode('choose')
+      setError('')
+      // show verification notice
+      alert('✅ Account created! Check your email to verify your account before signing in.')
     } else {
       router.push('/')
     }
-  }
 
   return (
     <div className="relative w-full h-[100dvh] overflow-hidden">
