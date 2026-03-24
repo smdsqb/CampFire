@@ -151,6 +151,42 @@ export async function castVote(postId: string, userId: string, value: 1 | -1) {
   }
 }
 
+export async function castCommentVote(
+  postId: string,
+  commentId: string,
+  userId: string,
+  value: 1 | -1,
+) {
+  await assertUserNotBanned(userId)
+
+  const voteRef = doc(db, 'commentVotes', `${postId}_${commentId}_${userId}`)
+  const commentRef = doc(db, 'comments', commentId)
+  const existing = await getDoc(voteRef)
+
+  if (existing.exists()) {
+    if (existing.data().value === value) {
+      // Same vote → toggle off
+      await deleteDoc(voteRef)
+      await updateDoc(commentRef, {
+        [value === 1 ? 'upvotes' : 'downvotes']: increment(-1),
+      })
+    } else {
+      // Switched direction
+      await updateDoc(voteRef, { value })
+      await updateDoc(commentRef, {
+        upvotes: increment(value === 1 ? 1 : -1),
+        downvotes: increment(value === -1 ? 1 : -1),
+      })
+    }
+  } else {
+    // First vote
+    await setDoc(voteRef, { postId, commentId, userId, value })
+    await updateDoc(commentRef, {
+      [value === 1 ? 'upvotes' : 'downvotes']: increment(1),
+    })
+  }
+}
+
 // ── COMMENTS ─────────────────────────────────────────────
 export function subscribeToComments(postId: string, cb: (comments: Comment[]) => void) {
   const q = query(
