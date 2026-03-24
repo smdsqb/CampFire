@@ -15,7 +15,7 @@ interface AuthCtx {
   loading: boolean
   signInWithGoogle: () => Promise<void>
   signInWithEmail: (email: string, password: string) => Promise<{ error?: string }>
-  signUpWithEmail: (email: string, password: string, displayName: string) => Promise<{ error?: string }>
+  signUpWithEmail: (email: string, password: string, displayName: string) => Promise<{ error?: string; verify?: boolean }>
   signOut: () => Promise<void>
 }
 
@@ -77,7 +77,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }
 
-  async function signUpWithEmail(email: string, password: string, displayName: string): Promise<{ error?: string }> {
+  async function signUpWithEmail(email: string, password: string, displayName: string): Promise<{ error?: string; verify?: boolean }> {
     try {
       const cred = await createUserWithEmailAndPassword(auth, email, password)
       await updateProfile(cred.user, { displayName })
@@ -92,7 +92,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         joinedAt: serverTimestamp(),
         createdAt: serverTimestamp(),
       })
-      return {}
+      await firebaseSignOut(auth) // sign them out until verified
+      return { verify: true }
     } catch (e: any) {
       const msg = e?.code === 'auth/email-already-in-use'
         ? 'An account with this email already exists.'
