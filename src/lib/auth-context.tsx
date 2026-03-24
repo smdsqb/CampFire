@@ -3,6 +3,8 @@
 import { createContext, useContext, useEffect, useState } from 'react'
 import {
   onAuthStateChanged, signInWithPopup, signOut as firebaseSignOut,
+  createUserWithEmailAndPassword, signInWithEmailAndPassword,
+  updateProfile,
   type User
 } from 'firebase/auth'
 import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore'
@@ -12,13 +14,17 @@ interface AuthCtx {
   user: User | null
   loading: boolean
   signInWithGoogle: () => Promise<void>
+  signInWithEmail: (email: string, password: string) => Promise<{ error?: string }>
+  signUpWithEmail: (email: string, password: string, displayName: string) => Promise<{ error?: string }>
   signOut: () => Promise<void>
 }
 
 const AuthContext = createContext<AuthCtx>({
   user: null, loading: true,
-  signInWithGoogle: async () => { },
-  signOut: async () => { },
+  signInWithGoogle: async () => {},
+  signInWithEmail: async () => ({}),
+  signUpWithEmail: async () => ({}),
+  signOut: async () => {},
 })
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
@@ -59,13 +65,50 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }
 
+  async function signInWithEmail(email: string, password: string): Promise<{ error?: string }> {
+    try {
+      await signInWithEmailAndPassword(auth, email, password)
+      return {}
+    } catch (e: any) {
+      const msg = e?.code === 'auth/invalid-credential'
+        ? 'Invalid email or password.'
+        : e?.message ?? 'Sign in failed.'
+      return { error: msg }
+    }
+  }
+
+  async function signUpWithEmail(email: string, password: string, displayName: string): Promise<{ error?: string }> {
+    try {
+      const cred = await createUserWithEmailAndPassword(auth, email, password)
+      await updateProfile(cred.user, { displayName })
+      await setDoc(doc(db, 'users', cred.user.uid), {
+        uid: cred.user.uid,
+        displayName,
+        photoURL: null,
+        email,
+        bio: '',
+        karma: 0,
+        joinedAt: serverTimestamp(),
+        createdAt: serverTimestamp(),
+      })
+      return {}
+    } catch (e: any) {
+      const msg = e?.code === 'auth/email-already-in-use'
+        ? 'An account with this email already exists.'
+        : e?.code === 'auth/weak-password'
+        ? 'Password must be at least 6 characters.'
+        : e?.message ?? 'Sign up failed.'
+      return { error: msg }
+    }
+  }
+
   async function signOut() {
     await firebaseSignOut(auth)
     setUser(null)
   }
 
   return (
-    <AuthContext.Provider value={{ user, loading, signInWithGoogle, signOut }}>
+    <AuthContext.Provider value={{ user, loading, signInWithGoogle, signInWithEmail, signUpWithEmail, signOut }}>
       {children}
     </AuthContext.Provider>
   )
