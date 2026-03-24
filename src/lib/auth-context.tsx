@@ -92,7 +92,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         joinedAt: serverTimestamp(),
         createdAt: serverTimestamp(),
       })
-      await firebaseSignOut(auth) // sign them out until verified
+      await firebaseSignOut(auth)
       return { verify: true }
     } catch (e: any) {
       const msg = e?.code === 'auth/email-already-in-use'
