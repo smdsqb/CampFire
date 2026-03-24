@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { useAuth } from '@/lib/auth-context'
 import { formatCount } from '@/lib/utils'
 import { getStats } from '@/lib/db'
@@ -11,7 +12,8 @@ import type { Post } from '@/types'
 interface Props { trending: Post[]; onOnlineCount: (n: number) => void }
 
 export default function RightPanel({ trending, onOnlineCount }: Props) {
-  const { user, signInWithGoogle } = useAuth()
+  const { user } = useAuth()
+  const router = useRouter()
   const [memberCount, setMemberCount] = useState(0)
   const [campCount, setCampCount] = useState(0)
   const [postCount, setPostCount] = useState(0)
@@ -26,7 +28,6 @@ export default function RightPanel({ trending, onOnlineCount }: Props) {
   }, [])
 
   useEffect(() => {
-    // Track online users with Firebase Realtime Database presence
     const connectedRef = ref(realtimeDb, '.info/connected')
     const onlineRef = ref(realtimeDb, 'online')
 
@@ -64,11 +65,11 @@ export default function RightPanel({ trending, onOnlineCount }: Props) {
           <div className="text-xs text-[#A89880]">Signed in as {user.displayName}</div>
         ) : (
           <button
-            onClick={signInWithGoogle}
-            className="w-full py-2 text-xs font-semibold text-white rounded-lg"
+            onClick={() => router.push('/login')}
+            className="w-full py-2 text-xs font-semibold text-white rounded-lg transition-all hover:opacity-90"
             style={{ background: 'linear-gradient(135deg,#EA580C,#F97316)' }}
           >
-            Sign in with Google
+            Login / Sign up
           </button>
         )}
         <div className="flex justify-around mt-3">
