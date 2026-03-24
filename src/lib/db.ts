@@ -95,6 +95,7 @@ export async function createPost(data: {
 
   const ref = await addDoc(collection(db, 'posts'), {
     ...data,
+    authorAvatar: data.authorAvatar ?? null,
     upvotes: 1,
     downvotes: 0,
     commentCount: 0,
@@ -221,6 +222,7 @@ export async function createComment(data: {
 
   const ref = await addDoc(collection(db, 'comments'), {
     ...data,
+    authorAvatar: data.authorAvatar ?? null,
     upvotes: 1,
     downvotes: 0,
     createdAt: serverTimestamp(),
