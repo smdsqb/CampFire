@@ -9,8 +9,8 @@ const config: Config = {
   theme: {
     extend: {
       fontFamily: {
-        sans:  ['Nunito', 'sans-serif'],
-        serif: ['Righteous', 'cursive'],
+        sans:  ['var(--font-sans)', 'sans-serif'],
+        serif: ['var(--font-heading)', 'sans-serif'],
       },
     },
   },
