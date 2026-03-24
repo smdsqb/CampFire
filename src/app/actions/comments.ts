@@ -6,6 +6,7 @@ import {
     collection,
     doc,
     deleteDoc,
+    getDoc,
     increment,
     serverTimestamp,
     setDoc,
@@ -29,7 +30,6 @@ export async function sendMessage(
             createdAt: serverTimestamp()
         })
 
-        // Update conversation's last message
         const convRef = doc(db, 'conversations', conversationId)
         await updateDoc(convRef, {
             lastMessage: text.trim(),
@@ -62,7 +62,6 @@ export async function createComment(
             downvotes: 0
         })
 
-        // Update post comment count
         const postRef = doc(db, 'posts', postId)
         await updateDoc(postRef, {
             commentCount: increment(1)
@@ -106,7 +105,6 @@ export async function deleteComment(
         const commentRef = doc(db, 'posts', postId, 'comments', commentId)
         await deleteDoc(commentRef)
 
-        // Decrement post comment count
         const postRef = doc(db, 'posts', postId)
         await updateDoc(postRef, {
             commentCount: increment(-1)
@@ -116,5 +114,59 @@ export async function deleteComment(
     } catch (error) {
         console.error('Delete comment error:', error)
         return { error: 'Failed to delete comment' }
+    }
+}
+
+// ── COMMENT VOTES ─────────────────────────────────────────────
+// Stored in: commentVotes/{postId}_{commentId}_{userId}
+
+export async function castCommentVote(
+    postId: string,
+    commentId: string,
+    userId: string,
+    value: 1 | -1
+): Promise<{ success?: boolean; error?: string }> {
+    try {
+        const voteRef = doc(db, 'commentVotes', `${postId}_${commentId}_${userId}`)
+        const commentRef = doc(db, 'posts', postId, 'comments', commentId)
+
+        const [existingSnap, commentSnap] = await Promise.all([
+            getDoc(voteRef),
+            getDoc(commentRef),
+        ])
+
+        if (!commentSnap.exists()) {
+            return { error: 'Comment not found' }
+        }
+
+        if (existingSnap.exists()) {
+            const existingValue = existingSnap.data().value
+
+            if (existingValue === value) {
+                // Same vote → toggle off
+                await deleteDoc(voteRef)
+                await updateDoc(commentRef, {
+                    [value === 1 ? 'upvotes' : 'downvotes']: increment(-1),
+                })
+            } else {
+                // Switched direction
+                await updateDoc(voteRef, { value })
+                await updateDoc(commentRef, {
+                    upvotes: increment(value === 1 ? 1 : -1),
+                    downvotes: increment(value === -1 ? 1 : -1),
+                })
+            }
+        } else {
+            // First vote
+            await setDoc(voteRef, { postId, commentId, userId, value })
+            await updateDoc(commentRef, {
+                [value === 1 ? 'upvotes' : 'downvotes']: increment(1),
+            })
+        }
+
+        return { success: true }
+    } catch (error) {
+        console.error('Cast comment vote error:', error)
+        return { error: 'Failed to cast vote' }
     }
 }
